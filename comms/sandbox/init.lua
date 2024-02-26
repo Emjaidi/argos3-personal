@@ -36,9 +36,12 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-	sensing_left = robot.proximity[3].value + robot.proximity[4].value + robot.proximity[5].value + robot.proximity[6].value
 
-	sensing_right = robot.proximity[22].value + robot.proximity[21].value +	robot.proximity[20].value + robot.proximity[19].value
+	sensing_forward =  robot.proximity[1].value + robot.proximity[2].value + robot.proximity[23].value
+
+	sensing_left =  robot.proximity[1].value + robot.proximity[2].value + robot.proximity[3].value + robot.proximity[4].value + robot.proximity[5].value + robot.proximity[6].value
+
+	sensing_right =  robot.proximity[24].value + robot.proximity[23].value + robot.proximity[22].value + robot.proximity[21].value +	robot.proximity[20].value + robot.proximity[19].value
 
 	-- Using the sensors on the back left/right side
 	sensing_back_left = robot.proximity[12].value + robot.proximity[9].value + robot.proximity[10].value + robot.proximity[11].value
@@ -50,6 +53,10 @@ function step()
 		Drive_as_car(4,-5)
 		log("1")
 	elseif( sensing_right ~= 0) then		
+		Stop_wheel()
+		Drive_as_car(4,5)
+		log("2")
+	elseif( sensing_forward ~= 0) then		
 		Stop_wheel()
 		Drive_as_car(4,5)
 		log("2")
