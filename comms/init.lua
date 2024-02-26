@@ -6,12 +6,7 @@
 
 
 -- Put your global variables here
-
-	-- Turning backwards left/right
-self_left_speed = robot.wheels.set_velocity(-20,20)
-self_right_speed = robot.wheels.set_velocity(20,-20)	
-	-- Using the sensors on the left/right side
-
+RANDOM_FORCE_VALUE = 30
 
 function Drive_as_car(forwardSpeed, angularSpeed)
 -- We have an equal component, and an opposed one   
@@ -20,12 +15,40 @@ function Drive_as_car(forwardSpeed, angularSpeed)
 	robot.wheels.set_velocity(leftSpeed,rightSpeed)
 end
 
-function Stop_wheel()
-	Drive_as_car(0,0)
+function Speed_from_force(f)
+    forward_speed = f.x * 1.0
+    angular_speed = f.y * 0.3
+
+    left_speed = forward_speed - angular_speed
+    right_speed = forward_speed + angular_speed
+
+    robot.wheels.set_velocity(left_speed, right_speed)
 end
 
+function Rand_force(val)
+    angle = robot.random.uniform(- math.pi/2, math.pi/2)
+    random_force = {x = val * math.cos(angle), y = val * math.sin(angle) }
+    return random_force
+end
+
+function Proximity_avoidance_force()
+    avoidance_force = {x = 0, y = 0}
+    for i = 1,24 do
+        -- "-100" for a strong repulsion 
+        v = -100 * robot.proximity[i].value 
+        a = robot.proximity[i].angle
+
+        sensor_force = {x = v * math.cos(a), y = v * math.sin(a)}
+        avoidance_force.x = avoidance_force.x + sensor_force.x
+        avoidance_force.y = avoidance_force.y + sensor_force.y
+    end
+    return avoidance_force
+end
+
+
+
 --[[ This function is executed every time you press the 'execute' button ]]
-function init()
+function init() 
    -- put your code here	
 	robot.leds.set_all_colors("yellow")
 	robot.leds.set_single_color(13, "red")
@@ -37,37 +60,14 @@ end
      It must contain the logic of your controller ]]
 function step()
 
-	sensing_forward =  robot.proximity[1].value + robot.proximity[2].value + robot.proximity[23].value
+    rand_force = Rand_force(RANDOM_FORCE_VALUE)
+    get_out_force = Proximity_avoidance_force()
 
-	sensing_left =  robot.proximity[1].value + robot.proximity[2].value + robot.proximity[3].value + robot.proximity[4].value + robot.proximity[5].value + robot.proximity[6].value
+    sum_force = {x=0, y=0}
+    sum_force.x = rand_force.x + get_out_force.x
+    sum_force.y = rand_force.y + get_out_force.y
 
-	sensing_right =  robot.proximity[24].value + robot.proximity[23].value + robot.proximity[22].value + robot.proximity[21].value +	robot.proximity[20].value + robot.proximity[19].value
-
-	-- Using the sensors on the back left/right side
-	sensing_back_left = robot.proximity[12].value + robot.proximity[9].value + robot.proximity[10].value + robot.proximity[11].value
-
-	sensing_back_right = robot.proximity[17].value + robot.proximity[16].value + robot.proximity[15].value + robot.proximity[18].value
-	
-	if( sensing_left ~= 0 ) then
-		Stop_wheel()
-		Drive_as_car(4,-5)
-		log("1")
-	elseif( sensing_right ~= 0) then		
-		Stop_wheel()
-		Drive_as_car(4,5)
-		log("2")
-	elseif( sensing_forward ~= 0) then		
-		Stop_wheel()
-		Drive_as_car(4,5)
-		log("2")
-	else
-		Drive_as_car(20,0)
-		log("5")
-	end	
---[[ driveAsCar(20,0) 
-	x = robot.proximity[1].angle
-	log(x)
-]]--
+    Speed_from_force(sum_force)
 end
 
 
