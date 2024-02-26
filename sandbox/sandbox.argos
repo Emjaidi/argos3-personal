@@ -17,7 +17,7 @@
     <!-- ***************************************************** -->
     <!-- * This is the Lua controller to associate to robots * -->
     <!-- ***************************************************** -->
-    <lua_controller id="lua">
+  <lua_controller id="lua" >
       <!-- Normal actuator/sensor configuration follows -->
       <actuators>
         <differential_steering implementation="default" />
@@ -31,9 +31,9 @@
         <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="false" />
       </sensors>
       <!-- No required configuration -->
-      <params />
+      <params script="./init.lua" />
       <!-- Optionally, you can pass a script as a controller parameter: -->
-      <!-- params script="../../src/testing/experiment/test_gripper.lua" / -->
+      <!--params script="./init.lua" /-->
     </lua_controller>
 
   </controllers>
@@ -89,6 +89,20 @@
       <orientation method="constant" values="0,0,0" />
       <entity quantity="5" max_trials="100">
         <cylinder id="c" height="0.5" radius="0.15" movable="false" />
+      </entity>
+    </distribute>
+
+    <!-- To use the cylinder as a grippable object, it is enough to
+         set its 'movable' attribute to 'true', and define its
+         mass (in kg).
+    -->
+    <distribute>
+      <position method="uniform" min="-2,-2,0" max="2,2,0" />
+      <orientation method="constant" values="0,0,0" />
+      <entity quantity="5" max_trials="100">
+        <cylinder id="c1" height="0.2" radius="0.1" mass="0.1" movable="true">
+            <body position="0.5,0,0" orientation="0,0,0" />
+        </cylinder>
       </entity>
     </distribute>
 
