@@ -8,6 +8,10 @@
 -- Put your global variables here
 RANDOM_FORCE_VALUE = 30
 
+-- Used for the leds
+cpt = 1
+up = true
+
 function Drive_as_car(forwardSpeed, angularSpeed)
 -- We have an equal component, and an opposed one   
 	leftSpeed  = forwardSpeed - angularSpeed
@@ -68,6 +72,26 @@ function step()
     sum_force.y = rand_force.y + get_out_force.y
 
     Speed_from_force(sum_force)
+
+    if(up) then
+        cpt = cpt + 1
+    else
+        cpt = cpt - 1
+    end
+
+    if(cpt>3) then
+        up = false
+    end
+
+    if(cpt<2) then
+        up = true
+    end
+
+    -- display
+    robot.leds.set_all_colors("black")
+
+    cpt_to_led = {11,12,1,2} -- to get right offset of LEDs
+    robot.leds.set_single_color(cpt_to_led[cpt],"red")
 end
 
 
