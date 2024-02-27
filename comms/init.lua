@@ -8,6 +8,9 @@
 -- Put your global variables here
 RANDOM_FORCE_VALUE = 30
 
+t = 0
+tmax = 0
+
 -- Used for the leds
 cpt = 1
 up = true
@@ -56,6 +59,9 @@ function init()
    -- put your code here	
 	robot.leds.set_all_colors("yellow")
 	robot.leds.set_single_color(13, "red")
+    robot.colored_blob_omnidirectional_camera.enable()
+    tmax = 100
+    t = math.floor( math.random(0,tmax) )
 end
 
 
@@ -92,6 +98,28 @@ function step()
 
     cpt_to_led = {11,12,1,2} -- to get right offset of LEDs
     robot.leds.set_single_color(cpt_to_led[cpt],"red")
+
+    for i =1, #robot.colored_blob_omnidirectional_camera do
+        blob = robot.colored_blob_omnidirectional_camera[i]
+        log("dist: " .. blob.distance)
+        log("angle: " .. blob.angle)
+        log("red: " .. blob.color.red ..
+            " / blue: " .. blob.color.blue ..
+            " / green: " .. blob.color.green)
+    end
+
+        --Blinking
+
+    t = t + 1
+
+    if(t<tmax) then
+        t = t + 1
+        robot.leds.set_single_color(13,"black")
+    else
+        t = 0
+        robot.leds.set_single_color(13,"red")
+    end
+
 end
 
 

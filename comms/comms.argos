@@ -25,17 +25,16 @@
         <leds implementation="default" medium="leds"/>
       </actuators>
       <sensors>
-        <footbot_proximity implementation="default" show_rays="true" />
+        <footbot_proximity implementation="default" show_rays="false" />
         <footbot_motor_ground implementation="rot_z_only" />
         <range_and_bearing implementation="medium" medium="rab" />
-        <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="false" />
+        <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds" show_rays="true" />
       </sensors>
       <!-- No required configuration -->
       <params script="./init.lua" />
       <!-- Optionally, you can pass a script as a controller parameter: -->
       <!--params script="./init.lua" /-->
     </lua_controller>
-
   </controllers>
 
   <!-- *********************** -->
