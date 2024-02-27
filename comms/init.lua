@@ -6,14 +6,16 @@
 
 
 -- Put your global variables here
-RANDOM_FORCE_VALUE = 30
+RANDOM_FORCE_VALUE = 20
 
 t = 0
 tmax = 0
 
 -- Used for the leds
 cpt = 1
+bcpt = 7
 up = true
+down = true
 
 function Drive_as_car(forwardSpeed, angularSpeed)
 -- We have an equal component, and an opposed one   
@@ -57,8 +59,10 @@ end
 --[[ This function is executed every time you press the 'execute' button ]]
 function init() 
    -- put your code here	
-	robot.leds.set_all_colors("yellow")
+	--[[
+    robot.leds.set_all_colors("yellow")
 	robot.leds.set_single_color(13, "red")
+    ]]
     robot.colored_blob_omnidirectional_camera.enable()
     tmax = 100
     t = math.floor( math.random(0,tmax) )
@@ -70,6 +74,7 @@ end
      It must contain the logic of your controller ]]
 function step()
 
+    -- Driving
     rand_force = Rand_force(RANDOM_FORCE_VALUE)
     get_out_force = Proximity_avoidance_force()
 
@@ -79,25 +84,36 @@ function step()
 
     Speed_from_force(sum_force)
 
+    --end driving
+
+    -- led
+
     if(up) then
         cpt = cpt + 1
     else
         cpt = cpt - 1
     end
 
-    if(cpt>3) then
+    if(cpt>6) then
         up = false
     end
 
-    if(cpt<2) then
+    if(cpt<4) then
         up = true
     end
+
 
     -- display
     robot.leds.set_all_colors("black")
 
-    cpt_to_led = {11,12,1,2} -- to get right offset of LEDs
-    robot.leds.set_single_color(cpt_to_led[cpt],"red")
+    cpt_to_led = {9,8,10,11,12,1,2,3,4,5} -- to get right offset of LEDs
+
+
+    if(cpt_to_led[cpt] % 2 == 0) then
+        robot.leds.set_single_color(cpt_to_led[cpt],"cyan")
+    else
+        robot.leds.set_single_color(cpt_to_led[cpt],"red")
+    end
 
     for i =1, #robot.colored_blob_omnidirectional_camera do
         blob = robot.colored_blob_omnidirectional_camera[i]
@@ -117,7 +133,12 @@ function step()
         robot.leds.set_single_color(13,"black")
     else
         t = 0
-        robot.leds.set_single_color(13,"red")
+        robot.leds.set_single_color(13,"yellow")
+    end
+
+    -- Sync
+    if(#robot.colored_blob_omnidirectional_camera > 0) then
+        t = t + 0.2 * t
     end
 
 end
