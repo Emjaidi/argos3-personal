@@ -105,15 +105,15 @@
       </entity>
     </distribute>
     <distribute>
-        <position method="uniform" min="-2,-2,0" max="2,2,0" />
+    <position method="uniform" min="-2.5,-2.5,0" max="2.5,2.5,0" />
         <orientation method="uniform" min="0,0,0" max="360,0,0" />
         <entity quantity="5" max_trials="100">
-            <box id="box1" size="0.2,0.2,0.2" movable="true" mass="2.5">
+            <box id="box1" size="0.1,0.1,0.1" movable="true" mass="2.5">
                 <leds medium="leds">
-                    <led offset=" 0.15, 0.15,0.15" anchor="origin" color="white" />
-                    <led offset="-0.15, 0.15,0"    anchor="origin" color="red"   />
-                    <led offset=" 0.15, 0.15,0"    anchor="origin" color="blue"  />
-                    <led offset=" 0.15,-0.15,0"    anchor="origin" color="green" />
+                    <led offset=" 0.0, 0.0,0.2" anchor="origin" color="white" />
+                    <!--<led offset="-0.15, 0.15,0"    anchor="origin" color="red"   /-->
+                    <!--led offset=" 0.15, 0.15,0"    anchor="origin" color="blue"  /-->
+                    <!--led offset=" 0.15,-0.15,0"    anchor="origin" color="green" /-->
                 </leds>
             </box>
         </entity>
