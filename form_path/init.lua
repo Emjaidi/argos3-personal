@@ -1,4 +1,4 @@
--- Use Shift + Click to select a robot
+-- Use Shift + Click to select a robotNone
 -- When a robot is selected, its variables appear in this editor
 
 -- Use Ctrl + Click (Cmd + Click on Mac) to move a selected robot to a different location
@@ -7,6 +7,9 @@
 
 -- Put your global variables here
 RANDOM_FORCE_VALUE = 20
+
+TARGET_DISTANCE = 80
+
 
 t = 0
 tmax = 0
@@ -53,6 +56,7 @@ function Proximity_avoidance_force()
     end
     return avoidance_force
 end
+
 
 
 
