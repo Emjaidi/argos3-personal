@@ -10,6 +10,7 @@ RANDOM_FORCE_VALUE = 20
 
 TARGET_DISTANCE = 80
 
+state = {}
 
 t = 0
 tmax = 0
@@ -58,26 +59,59 @@ function Proximity_avoidance_force()
 end
 
 
+function cameraForce(attraction, strong)
+  camForce = {x = 0, y = 0}
 
+  -- Check if there is a light seen
+  if(#robot.colored_blob_omnidirectional_camera == 0) then
+    return camForce
+  end
 
---[[ This function is executed every time you press the 'execute' button ]]
-function init() 
-   -- put your code here	
-	--[[
-    robot.leds.set_all_colors("yellow")
-	robot.leds.set_single_color(13, "red")
-    ]]
-    robot.colored_blob_omnidirectional_camera.enable()
-    tmax = 100
-    t = math.floor( math.random(0,tmax) )
+  dist = robot.colored_blob_omnidirectional_camera[1].distance
+  angle = robot.colored_blob_omnidirectional_camera[1].angle
+
+  -- Max range defined at 80 cm
+  if(dist > 80) then
+    return camForce
+  end
+
+  -- Strong or Weak reaction
+  if(strong) then
+    val = 35 * dist/80
+  else
+    val = 35 * (1 - dist/80)
+  end
+
+  -- Attraction or Repulsion
+  if(not attraction) then
+    val = - val
+  end
+
+  camForce.x = val * math.cos(angle)
+  camForce.y = val * math.sin(angle)        
+  return camForce
 end
 
+function state.bot_light()
+    Drive_as_car(7,3)
+    --Display of the bot light
+    robot.leds.set_all_colors("black")
 
+   cpt_to_led =  {}-- to get right offset of LEDs
 
---[[ This function is executed at each time step
-     It must contain the logic of your controller ]]
-function step()
+    for i=1, 12 do
+      cpt_to_led[i] = 1
+    end
 
+    if(cpt_to_led[cpt] % 2 == 0) then
+        robot.leds.set_single_color(cpt_to_led[cpt],"yellow")
+    else
+        robot.leds.set_single_color(cpt_to_led[cpt],"black")
+    end
+end
+
+function state.explore()
+    --
     -- Driving
     rand_force = Rand_force(RANDOM_FORCE_VALUE)
     get_out_force = Proximity_avoidance_force()
@@ -118,16 +152,6 @@ function step()
     else
         robot.leds.set_single_color(cpt_to_led[cpt],"red")
     end
-
-    for i =1, #robot.colored_blob_omnidirectional_camera do
-        blob = robot.colored_blob_omnidirectional_camera[i]
-        log("dist: " .. blob.distance)
-        log("angle: " .. blob.angle)
-        log("red: " .. blob.color.red ..
-            " / blue: " .. blob.color.blue ..
-            " / green: " .. blob.color.green)
-    end
-
         --Blinking
 
     t = t + 1
@@ -144,6 +168,44 @@ function step()
     if(#robot.colored_blob_omnidirectional_camera > 0) then
         t = t + 0.2 * t
     end
+
+end
+--[[ This function is executed every time you press the 'execute' button ]]
+function init()
+   -- put your code here	
+	--[[
+    robot.leds.set_all_colors("yellow")
+	robot.leds.set_single_color(13, "red")
+    ]]
+    robot.colored_blob_omnidirectional_camera.enable()
+    tmax = 100
+    t = math.floor( math.random(0,tmax) )
+end
+
+
+
+--[[ This function is executed at each time step
+     It must contain the logic of your controller ]]
+function step()
+    state["explore"]()
+    if (robot.id == "mfb1") then
+        state.bot_light()
+    else
+        state.explore()
+    end
+
+
+    log(robot.id)
+--[[
+    for i =1, #robot.colored_blob_omnidirectional_camera do
+        blob = robot.colored_blob_omnidirectional_camera[i]
+        log("dist: " .. blob.distance)
+        log("angle: " .. blob.angle)
+        log("red: " .. blob.color.red ..
+            " / blue: " .. blob.color.blue ..
+            " / green: " .. blob.color.green)
+    end
+--]]
 
 end
 

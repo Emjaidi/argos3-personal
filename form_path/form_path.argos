@@ -59,13 +59,20 @@
     <distribute>
       <position method="uniform" min="-2,-2.5,0" max="2,2.5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="20" max_trials="100">
+      <entity quantity="10" max_trials="100">
         <foot-bot id="fb"
                   rab_range = "1">
           <controller config="lua" />
         </foot-bot>
       </entity>
     </distribute>
+
+    <!-- role of light for the id=fb to follow-->
+    <foot-bot id="mfb1"
+            rab_range = "1">
+        <body position="0,0,0" orientation="45,0,0" />
+        <controller config="lua"/>
+    </foot-bot>
     <!--
         We distribute 5 boxes uniformly in position and rotation around Z.
     -->
