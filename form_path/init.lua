@@ -188,6 +188,12 @@ local state = {
 
         --end driving
         LED_Design()
+        log(robot.colored_blob_omnidirectional_camera.color)
+        --[[
+        if(robot.colored_blob_omnidirectional_camera.color== ) then
+            log("Found")
+        end
+        --]]
     end
 
     -- TODO when a resource is found (specific LED)
@@ -195,9 +201,6 @@ local state = {
     -- the bot can transmit a message or
     -- change the design of its LEDs to point to the resource
     --[[
-    if(robot.colored_blob_omnidirectional_camera.(0,255,51)) then
-        log("Found")
-    end 
     --]]
     --
 }
