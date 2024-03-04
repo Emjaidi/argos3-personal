@@ -57,12 +57,12 @@ function Proximity_avoidance_force()
 end
 
 
-function Camera_force(attraction, strong)
-  cam_force = {x = 0, y = 0}
+function cameraForce(attraction, strong)
+  camForce = {x = 0, y = 0}
 
   -- Check if there is a light seen
   if(#robot.colored_blob_omnidirectional_camera == 0) then
-    return cam_force
+    return camForce
   end
 
   dist = robot.colored_blob_omnidirectional_camera[1].distance
@@ -70,7 +70,7 @@ function Camera_force(attraction, strong)
 
   -- Max range defined at 80 cm
   if(dist > 80) then
-    return cam_force
+    return camForce
   end
 
   -- Strong or Weak reaction
@@ -85,9 +85,9 @@ function Camera_force(attraction, strong)
     val = - val
   end
 
-  cam_force.x = val * math.cos(angle)
-  cam_force.y = val * math.sin(angle)        
-  return cam_force
+  camForce.x = val * math.cos(angle)
+  camForce.y = val * math.sin(angle)        
+  return camForce
 end
 
 function state.bot_light()
@@ -111,8 +111,6 @@ end
 function state.explore()
     --
     -- Driving
-    v_f = Camera_force(false, true)
-
     rand_force = Rand_force(RANDOM_FORCE_VALUE)
     get_out_force = Proximity_avoidance_force()
 
@@ -120,7 +118,7 @@ function state.explore()
     sum_force.x = rand_force.x + get_out_force.x
     sum_force.y = rand_force.y + get_out_force.y
 
-    Speed_from_force(v_f)
+    Speed_from_force(sum_force)
 
     --end driving
 
@@ -218,26 +216,30 @@ local state = {
 }
 --[[ This function is executed every time you press the 'execute' button ]]
 function init()
+   -- put your code here	
+	--[[
+    robot.leds.set_all_colors("yellow")
+	robot.leds.set_single_color(13, "red")
+    ]]
     robot.colored_blob_omnidirectional_camera.enable()
     tmax = 100
     t = math.floor( math.random(0,tmax) )
 end
 
 
+
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
     state["explore"]()
-    v_f = Camera_force(true,true)
-
-    log(v_f.x,v_f.y)
-
     if (robot.id == "mfb1") then
         state.bot_light()
     else
         state.explore()
     end
 
+
+    log(robot.id)
 --[[
     for i =1, #robot.colored_blob_omnidirectional_camera do
         blob = robot.colored_blob_omnidirectional_camera[i]
