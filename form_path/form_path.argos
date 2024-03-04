@@ -64,7 +64,7 @@
            medium="leds"/>
 
     <distribute>
-      <position method="uniform" min="-2.99,-3.49,0" max="-2.0,-1.0,0" />
+      <position method="uniform" min="-2.99,-3.49,0" max="-2.0,-3.0,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="10" max_trials="100">
         <foot-bot id="fb"
@@ -158,7 +158,7 @@
     <qt-opengl lua_editor="true">
             <camera>
         <placements>
-          <placement index="0" position="0,0,4.34" look_at="0,0,0" up="1,0,0" lens_focal_length="10" />
+          <placement index="0" position="0,0,4.34" look_at="0,0,0" up=".5,0,0" lens_focal_length="10" />
         </placements>
       </camera>
 
