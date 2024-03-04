@@ -10,8 +10,11 @@ RANDOM_FORCE_VALUE = 20
 
 TARGET_DISTANCE = 80
 
+<<<<<<< Updated upstream
 state = {}
 
+=======
+>>>>>>> Stashed changes
 t = 0
 tmax = 0
 
@@ -171,7 +174,57 @@ function state.explore()
         t = t + 0.2 * t
     end
 
+<<<<<<< Updated upstream
+=======
+    
 end
+
+function state.bot_light()
+    Drive_as_car(7,3)
+    --Display of the bot light
+    robot.leds.set_all_colors("black")
+
+    cpt_to_led =  {}-- to get right offset of LEDs
+
+    for i=1, 12 do
+      cpt_to_led[i] = 1
+    end
+
+    if(cpt_to_led[cpt] % 2 == 0) then
+        robot.leds.set_single_color(cpt_to_led[cpt],"yellow")
+    else
+        robot.leds.set_single_color(cpt_to_led[cpt],"black")
+    end
+
+>>>>>>> Stashed changes
+end
+
+local state = {
+    explore = function()
+
+        rand_force = Rand_force(RANDOM_FORCE_VALUE)
+        get_out_force = Proximity_avoidance_force()
+
+        sum_force = {x=0, y=0}
+        sum_force.x = rand_force.x + get_out_force.x
+        sum_force.y = rand_force.y + get_out_force.y
+
+        Speed_from_force(sum_force)
+
+        --end driving
+        LED_Design()
+    end
+
+    -- TODO when a resource is found (specific LED)
+    -- the state changes to form a path to the resource
+    -- the bot can transmit a message or
+    -- change the design of its LEDs to point to the resource
+    --[[
+    if(robot.colored_blob_omnidirectional_camera.(0,255,51)) then
+        log("Found")
+    end 
+    --]]
+}
 --[[ This function is executed every time you press the 'execute' button ]]
 function init()
     robot.colored_blob_omnidirectional_camera.enable()
@@ -183,6 +236,7 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
+<<<<<<< Updated upstream
     state["explore"]()
     v_f = Camera_force(true,true)
 
@@ -205,6 +259,9 @@ function step()
     end
 --]]
 
+=======
+    state.explore()
+>>>>>>> Stashed changes
 end
 
 

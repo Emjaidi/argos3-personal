@@ -56,6 +56,18 @@
       <body position="0,3.5,0" orientation="0,0,0" />
     </box>
 
+<<<<<<< Updated upstream
+=======
+    <!--
+    <light id="light0"
+           position="0.7,0.3,0.25"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="1.0"
+           medium="leds"/>
+    -->
+
+>>>>>>> Stashed changes
     <distribute>
       <position method="uniform" min="-2,-2.5,0" max="2,2.5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
@@ -67,6 +79,7 @@
       </entity>
     </distribute>
 
+<<<<<<< Updated upstream
     <!-- role of light for the id=fb to follow-->
     <foot-bot id="mfb1"
             rab_range = "1">
@@ -114,13 +127,15 @@
       </entity>
     </distribute>
 -->
+=======
+>>>>>>> Stashed changes
     <distribute>
     <position method="uniform" min="-2.5,-2.5,0" max="2.5,2.5,0" />
         <orientation method="uniform" min="0,0,0" max="360,0,0" />
         <entity quantity="5" max_trials="100">
             <box id="box1" size="0.1,0.1,0.1" movable="true" mass="2.5">
                 <leds medium="leds">
-                    <led offset=" 0.0, 0.0,0.2" anchor="origin" color="white" />
+                    <led offset=" 0.0, 0.0,0.2" anchor="origin" color="0,255,251" />
                     <!--<led offset="-0.15, 0.15,0"    anchor="origin" color="red"   /-->
                     <!--led offset=" 0.15, 0.15,0"    anchor="origin" color="blue"  /-->
                     <!--led offset=" 0.15,-0.15,0"    anchor="origin" color="green" /-->
