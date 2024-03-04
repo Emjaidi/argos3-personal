@@ -10,6 +10,7 @@ RANDOM_FORCE_VALUE = 20
 
 TARGET_DISTANCE = 80
 
+
 state = {}
 
 t = 0
@@ -59,9 +60,13 @@ function Proximity_avoidance_force()
 end
 
 
+-- This function takes in the boolean parameters attraction and  stron
+-- given the parameters the reaction is either repulsion or attraction
+--
 function Camera_force(attraction, strong)
   cam_force = {x = 0, y = 0}
 
+  max_range = 160
   -- Check if there is a light seen
   if(#robot.colored_blob_omnidirectional_camera == 0) then
     return cam_force
@@ -71,15 +76,15 @@ function Camera_force(attraction, strong)
   angle = robot.colored_blob_omnidirectional_camera[1].angle
 
   -- Max range defined at 80 cm
-  if(dist > 80) then
+  if(dist > max_range) then
     return cam_force
   end
 
   -- Strong or Weak reaction
   if(strong) then
-    val = 35 * dist/80
+    val = 35 * dist/max_range
   else
-    val = 35 * (1 - dist/80)
+    val = 35 * (1 - dist/max_range)
   end
 
   -- Attraction or Repulsion
@@ -92,40 +97,9 @@ function Camera_force(attraction, strong)
   return cam_force
 end
 
-function state.bot_light()
-    Drive_as_car(7,3)
-    --Display of the bot light
-    robot.leds.set_all_colors("black")
-
-   cpt_to_led =  {}-- to get right offset of LEDs
-
-    for i=1, 12 do
-      cpt_to_led[i] = 1
-    end
-
-    if(cpt_to_led[cpt] % 2 == 0) then
-        robot.leds.set_single_color(cpt_to_led[cpt],"yellow")
-    else
-        robot.leds.set_single_color(cpt_to_led[cpt],"black")
-    end
-end
-
-function state.explore()
-    --
-    -- Driving
-    v_f = Camera_force(false, true)
-
-    rand_force = Rand_force(RANDOM_FORCE_VALUE)
-    get_out_force = Proximity_avoidance_force()
-
-    sum_force = {x=0, y=0}
-    sum_force.x = rand_force.x + get_out_force.x
-    sum_force.y = rand_force.y + get_out_force.y
-
-    Speed_from_force(v_f)
-
-    --end driving
-
+function LED_Design()
+    -- TODO assign different design to bots if goal is found
+    -- goal can either be resource or resource drop off site
     -- led
 
     if(up) then
@@ -171,12 +145,52 @@ function state.explore()
         t = t + 0.2 * t
     end
 
+    
+end
+
+function state.bot_light()
+    Drive_as_car(7,3)
+    --Display of the bot light
+    robot.leds.set_all_colors("black")
+
+   cpt_to_led =  {}-- to get right offset of LEDs
+
+    for i=1, 12 do
+      cpt_to_led[i] = 1
+    end
+
+    if(cpt_to_led[cpt] % 2 == 0) then
+        robot.leds.set_single_color(cpt_to_led[cpt],"yellow")
+    else
+        robot.leds.set_single_color(cpt_to_led[cpt],"black")
+    end
+end
+
+function state.explore()
+    --
+    -- Driving
+
+    -- v_f = Camera_force(true, true)
+
+    rand_force = Rand_force(RANDOM_FORCE_VALUE)
+    get_out_force = Proximity_avoidance_force()
+
+    sum_force = {x=0, y=0}
+    sum_force.x = rand_force.x + get_out_force.x
+    sum_force.y = rand_force.y + get_out_force.y
+
+    Speed_from_force(sum_force)
+
+    --end driving
+    LED_Design()
+
 end
 --[[ This function is executed every time you press the 'execute' button ]]
 function init()
     robot.colored_blob_omnidirectional_camera.enable()
     tmax = 100
     t = math.floor( math.random(0,tmax) )
+    goal_found = false
 end
 
 
@@ -184,14 +198,11 @@ end
      It must contain the logic of your controller ]]
 function step()
     state["explore"]()
-    v_f = Camera_force(true,true)
 
-    log(v_f.x,v_f.y)
-
-    if (robot.id == "mfb1") then
-        state.bot_light()
-    else
+    if (not goal_found) then
         state.explore()
+    else
+        state.aggregate()
     end
 
 --[[
