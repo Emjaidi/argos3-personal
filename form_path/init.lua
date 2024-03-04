@@ -123,8 +123,12 @@ function state.explore()
 
     --end driving
 
-    -- led
 
+
+end
+--]]
+function LED_Design()
+    -- led
     if(up) then
         cpt = cpt + 1
     else
@@ -167,9 +171,7 @@ function state.explore()
     if(#robot.colored_blob_omnidirectional_camera > 0) then
         t = t + 0.2 * t
     end
-
 end
---]]
 
 
 local state = {
