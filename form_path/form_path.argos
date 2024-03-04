@@ -87,7 +87,7 @@
         <entity quantity="1" max_trials="100">
             <box id="box1" size="0.1,0.1,0.1" movable="true" mass="2.5">
                 <leds medium="leds">
-                    <led offset=" 0.0, 0.0,0.2" anchor="origin" color="purple" />
+                    <led offset=" 0.0, 0.0,0.2" anchor="origin" color="blue" />
                 </leds>
             </box>
         </entity>

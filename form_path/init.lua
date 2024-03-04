@@ -13,7 +13,6 @@ TARGET_DISTANCE = 80
 t = 0
 tmax = 0
 
-state = {}
 -- Used for the leds
 cpt = 1
 bcpt = 7
@@ -127,6 +126,7 @@ function state.explore()
 
 end
 --]]
+
 function LED_Design()
     -- led
     if(up) then
@@ -173,6 +173,7 @@ function LED_Design()
     end
 end
 
+local my_state = "explore"
 
 local state = {
     explore = function()
@@ -187,11 +188,14 @@ local state = {
         Speed_from_force(sum_force)
 
         --end driving
-        LED_Design()
-        log(robot.colored_blob_omnidirectional_camera.color)
-        --[[
-        if(robot.colored_blob_omnidirectional_camera.color== ) then
-            log("Found")
+        --LED_Design()
+
+        log(#robot.colored_blob_omnidirectional_camera)
+        if(#robot.colored_blob_omnidirectional_camera > 0 ) then
+            log(robot.colored_blob_omnidirectional_camera[1].color.blue)
+            --[[if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255)then
+
+            end]]
         end
         --]]
     end
@@ -217,7 +221,7 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-    state["explore"]()
+    state[my_state]()
 end
 
 
