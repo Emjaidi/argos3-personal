@@ -10,11 +10,6 @@ RANDOM_FORCE_VALUE = 20
 
 TARGET_DISTANCE = 80
 
-<<<<<<< Updated upstream
-state = {}
-
-=======
->>>>>>> Stashed changes
 t = 0
 tmax = 0
 
@@ -174,9 +169,6 @@ function state.explore()
         t = t + 0.2 * t
     end
 
-<<<<<<< Updated upstream
-=======
-    
 end
 
 function state.bot_light()
@@ -196,7 +188,6 @@ function state.bot_light()
         robot.leds.set_single_color(cpt_to_led[cpt],"black")
     end
 
->>>>>>> Stashed changes
 end
 
 local state = {
@@ -236,7 +227,6 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-<<<<<<< Updated upstream
     state["explore"]()
     v_f = Camera_force(true,true)
 
@@ -259,9 +249,6 @@ function step()
     end
 --]]
 
-=======
-    state.explore()
->>>>>>> Stashed changes
 end
 
 
