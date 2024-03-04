@@ -90,7 +90,7 @@ function cameraForce(attraction, strong)
   camForce.y = val * math.sin(angle)        
   return camForce
 end
-
+--[[
 function state.bot_light()
     Drive_as_car(7,3)
     --Display of the bot light
@@ -169,8 +169,8 @@ function state.explore()
     end
 
 end
+--]]
 
---[[
 
 local state = {
     explore = function()
@@ -197,14 +197,11 @@ local state = {
         log("Found")
     end 
     --]]
---]]
+    --
+}
 --[[ This function is executed every time you press the 'execute' button ]]
 function init()
    -- put your code here	
-	--[[
-    robot.leds.set_all_colors("yellow")
-	robot.leds.set_single_color(13, "red")
-    ]]
     robot.colored_blob_omnidirectional_camera.enable()
     tmax = 100
     t = math.floor( math.random(0,tmax) )
@@ -215,25 +212,7 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-    if (robot.id == "mfb1") then
-        state.bot_light()
-    else
-        state.explore()
-    end
-
-
-    log(robot.id)
---[[
-    for i =1, #robot.colored_blob_omnidirectional_camera do
-        blob = robot.colored_blob_omnidirectional_camera[i]
-        log("dist: " .. blob.distance)
-        log("angle: " .. blob.angle)
-        log("red: " .. blob.color.red ..
-            " / blue: " .. blob.color.blue ..
-            " / green: " .. blob.color.green)
-    end
---]]
-
+    state["explore"]()
 end
 
 
