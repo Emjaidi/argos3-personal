@@ -13,6 +13,7 @@ TARGET_DISTANCE = 80
 t = 0
 tmax = 0
 
+state = {}
 -- Used for the leds
 cpt = 1
 bcpt = 7
@@ -169,24 +170,7 @@ function state.explore()
 
 end
 
-function state.bot_light()
-    Drive_as_car(7,3)
-    --Display of the bot light
-    robot.leds.set_all_colors("black")
-
-    cpt_to_led =  {}-- to get right offset of LEDs
-
-    for i=1, 12 do
-      cpt_to_led[i] = 1
-    end
-
-    if(cpt_to_led[cpt] % 2 == 0) then
-        robot.leds.set_single_color(cpt_to_led[cpt],"yellow")
-    else
-        robot.leds.set_single_color(cpt_to_led[cpt],"black")
-    end
-
-end
+--[[
 
 local state = {
     explore = function()
@@ -213,7 +197,7 @@ local state = {
         log("Found")
     end 
     --]]
-}
+--]]
 --[[ This function is executed every time you press the 'execute' button ]]
 function init()
    -- put your code here	
@@ -231,7 +215,6 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-    state["explore"]()
     if (robot.id == "mfb1") then
         state.bot_light()
     else
