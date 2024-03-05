@@ -8,7 +8,7 @@
 -- Put your global variables here
 RANDOM_FORCE_VALUE = 20
 
-TARGET_DISTANCE = 80
+TARGET_DISTANCE = 160
 
 t = 0
 tmax = 0
@@ -129,6 +129,7 @@ end
 
 function LED_Design()
     -- led
+    --[[
     if(up) then
         cpt = cpt + 1
     else
@@ -142,9 +143,10 @@ function LED_Design()
     if(cpt<4) then
         up = true
     end
-
+    --]]
 
     -- display
+    --[[
     robot.leds.set_all_colors("black")
 
     cpt_to_led = {9,8,10,11,12,1,2,3,4,5} -- to get right offset of LEDs
@@ -155,10 +157,17 @@ function LED_Design()
     else
         robot.leds.set_single_color(cpt_to_led[cpt],"red")
     end
-        --Blinking
 
+    --13 LED Blinking state
     t = t + 1
+    --]]
 
+    if(my_state == "halt") then
+        robot.leds.set_single_color(13,"red")
+    else
+        robot.leds.set_single_color(13,"green")
+    end
+    --[[
     if(t<tmax) then
         t = t + 1
         robot.leds.set_single_color(13,"black")
@@ -166,11 +175,14 @@ function LED_Design()
         t = 0
         robot.leds.set_single_color(13,"yellow")
     end
+    --]]
 
     -- Sync
+    --[[
     if(#robot.colored_blob_omnidirectional_camera > 0) then
         t = t + 0.2 * t
     end
+    --]]
 end
 
 local my_state = "explore"
@@ -196,8 +208,11 @@ local state = {
     -- change the design of its LEDs to point to the resource
         if(#robot.colored_blob_omnidirectional_camera > 0 ) then
             --log(robot.colored_blob_omnidirectional_camera[1].color.blue)
+            --[[if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255
+                --]]
             if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255)then
                 log(robot.id .. " says o ueah")
+                log(robot.colored_blob_omnidirectional_camera[1].distance)
                 my_state = "halt"
             end
         end
@@ -205,8 +220,8 @@ local state = {
 
     halt = function()
         Drive_as_car(0,0)
-        log("Halthing")
-    end
+        --LED_Design()
+    end,
 
 }
 --[[ This function is executed every time you press the 'execute' button ]]
