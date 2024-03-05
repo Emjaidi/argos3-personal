@@ -190,23 +190,24 @@ local state = {
         --end driving
         --LED_Design()
 
-        log(#robot.colored_blob_omnidirectional_camera)
-        if(#robot.colored_blob_omnidirectional_camera > 0 ) then
-            log(robot.colored_blob_omnidirectional_camera[1].color.blue)
-            --[[if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255)then
-
-            end]]
-        end
-        --]]
-    end
-
     -- TODO when a resource is found (specific LED)
     -- the state changes to form a path to the resource
     -- the bot can transmit a message or
     -- change the design of its LEDs to point to the resource
-    --[[
-    --]]
-    --
+        if(#robot.colored_blob_omnidirectional_camera > 0 ) then
+            --log(robot.colored_blob_omnidirectional_camera[1].color.blue)
+            if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255)then
+                log(robot.id .. " says o ueah")
+                my_state = "halt"
+            end
+        end
+    end,
+
+    halt = function()
+        Drive_as_car(0,0)
+        log("Halthing")
+    end
+
 }
 --[[ This function is executed every time you press the 'execute' button ]]
 function init()
