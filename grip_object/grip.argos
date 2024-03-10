@@ -82,7 +82,7 @@
             <controller config="lua" />
         </foot-bot>
 
-        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="2.5">
+        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="100000.5">
             <body position="0,1,0" orientation="45,0,0" />
             <leds medium="leds">
                 <led offset=" 0.0, 0.0,0.2" anchor="origin" color="blue" />

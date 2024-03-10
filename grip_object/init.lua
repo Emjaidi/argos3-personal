@@ -206,19 +206,24 @@ local state = {
         -- the bot can transmit a message or
         -- change the design of its LEDs to point to the resource
         if (#robot.colored_blob_omnidirectional_camera > 0) then
-            log(robot.colored_blob_omnidirectional_camera)
+            --log(robot.colored_blob_omnidirectional_camera)
             --[[if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255
                 --]]
             if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255) then
                 log(robot.id .. " says o yeah")
                 log(robot.colored_blob_omnidirectional_camera[1].distance)
-                my_state = "halt"
+                my_state = "approach"
             end
         end
     end,
 
     halt = function()
         Drive_as_car(0, 0)
+        --LED_Design()
+    end,
+
+    approach = function()
+        Speed_from_force(cameraForce(true,true))
         --LED_Design()
     end,
 
