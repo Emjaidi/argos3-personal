@@ -23,6 +23,8 @@
                 <differential_steering implementation="default" />
                 <range_and_bearing implementation="default" />
                 <leds implementation="default" medium="leds" />
+                <footbot_gripper implementation="default"/>
+                <footbot_turret implementation="default"/>
             </actuators>
             <sensors>
                 <footbot_proximity implementation="default" show_rays="false" />
@@ -82,7 +84,7 @@
             <controller config="lua" />
         </foot-bot>
 
-        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="100000.5">
+        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="5000">
             <body position="0,1,0" orientation="45,0,0" />
             <leds medium="leds">
                 <led offset=" 0.0, 0.0,0.2" anchor="origin" color="blue" />

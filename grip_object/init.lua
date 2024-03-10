@@ -223,7 +223,20 @@ local state = {
     end,
 
     approach = function()
-        Speed_from_force(cameraForce(true,true))
+        Speed_from_force(cameraForce(true, true))
+        log(robot.proximity[1].value)
+        if robot.proximity[1].value == 1 then
+            Drive_as_car(0, 0)
+            robot.turret.set_passive_mode()
+            robot.gripper.lock_negative()
+            log("Locked & Loaded!")
+            my_state = "deliver"
+        end
+        --LED_Design()
+    end,
+    deliver = function()
+        log("Delivering!")
+        Drive_as_car(-5, 0)
         --LED_Design()
     end,
 
