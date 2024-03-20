@@ -1,5 +1,11 @@
 {
     "diagnostics.globals": [
-        "tmax"
+        "tmax",
+        "cpt",
+        "robot",
+        "log"
+    ],
+    "diagnostics.disable": [
+        "lowercase-global"
     ]
 }

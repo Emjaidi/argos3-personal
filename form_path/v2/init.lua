@@ -7,6 +7,10 @@
 
 
 -- Put your global variables here
+local my_state = "explore"
+
+local found_table = {}
+
 RANDOM_FORCE_VALUE = 50
 
 TARGET_DISTANCE = 160
@@ -45,8 +49,8 @@ function Proximity_avoidance_force()
     local avoidance_force = { x = 0, y = 0 }
     for i = 1, 24 do
         -- "-100" for a strong repulsion
-        v = -100 * robot.proximity[i].value
-        a = robot.proximity[i].angle
+        local v = -100 * robot.proximity[i].value
+        local a = robot.proximity[i].angle
 
         local sensor_force = { x = v * math.cos(a), y = v * math.sin(a) }
         avoidance_force.x = avoidance_force.x + sensor_force.x
@@ -88,46 +92,6 @@ function Camera_force(attraction, strong)
     return camForce
 end
 
---[[
-function state.bot_light()
-    Drive_as_car(7,3)
-    --Display of the bot light
-    robot.leds.set_all_colors("black")
-
-   cpt_to_led =  {}-- to get right offset of LEDs
-
-    for i=1, 12 do
-      cpt_to_led[i] = 1
-    end
-
-    if(cpt_to_led[CPT] % 2 == 0) then
-        robot.leds.set_single_color(cpt_to_led[CPT],"yellow")
-    else
-        robot.leds.set_single_color(cpt_to_led[CPT],"black")
-    end
-end
-
-function state.explore()
-    --
-    -- Driving
-    rand_force = Rand_force(RANDOM_FORCE_VALUE)
-    get_out_force = Proximity_avoidance_force()
-
-    sum_force = {x=0, y=0}
-    sum_force.x = rand_force.x + get_out_force.x
-    sum_force.y = rand_force.y + get_out_force.y
-
-    Speed_from_force(sum_force)
-
-    --end driving
-
-
-
-end
---]]
-
-
-MY_design = "none"
 
 Design = {
     robocop = function()
@@ -179,7 +143,6 @@ Design = {
     end
 }
 
-local my_state = "explore"
 
 local state = {
     explore = function()
@@ -211,6 +174,28 @@ local state = {
         end
     end,
 
+    message = function()
+        --[[ Robot.range_and_bearing is a table visualized as:
+        --| Position | Message Meaning |
+        --| -------- | --------------- |
+        --| 1        | home base found | 0/1
+        --| 2        | resource found  | 0/1
+        --| 3        | tbd             |
+        --| 4        | tbd             |
+        --| 5        | tbd             |
+        --| 6        | tbd             |
+        --| 7        | tbd             |
+        --| 8        | tbd             |
+        --| 9        | tbd             |
+        --| 10       | tbd             |
+        --For this program I will repurpose the meaning of the each position
+        --Elaborated above
+        --TODO determine if this should be set globally
+        --]]
+        robot.range_and_bearing.set_data(1,255)
+        log(robot.range_and_bearing[1].data[1])
+    end,
+
     halt = function()
         Drive_as_car(0, 0)
         --LED_Design()
@@ -229,6 +214,7 @@ local state = {
             log("Locked & Loaded!")
             my_state = "deliver"
         end
+
         if (0 == #robot.colored_blob_omnidirectional_camera) then
             my_state = "explore"
         end
@@ -239,10 +225,29 @@ local state = {
         Speed_from_force(Proximity_avoidance_force())
         MY_design = "none"
         Design[MY_design]()
-        --LED_Design()
     end,
 
 }
+
+function add_to_found_table(bot_name, home, resource)
+    -- Check if the bot already exists in the found table
+    local bot_entry = found_table[bot_name]
+    if bot_entry == nil then
+        -- If the bot doesn't exist, create a new nested table
+        found_table[bot_name] = {{home = home, resource = resource}}
+    else
+        -- If the bot already exists, check for redundancy
+        for _, entry in ipairs(bot_entry) do
+            if entry.home == home and entry.resource == resource then
+                -- Redundant entry, skip adding
+                return
+            end
+        end
+        -- If not redundant, add a new entry to the nested table
+        table.insert(bot_entry, {home = home, resource = resource})
+    end
+end
+
 --[[ This function is executed every time you press the 'execute' button ]]
 
 function init()
@@ -267,9 +272,6 @@ function reset()
     -- put your code here
     my_state = "explore"
     state[my_state]()
-
-    MY_design = "none"
-    Design[MY_design]()
 end
 
 --[[ This function is executed only once, when the robot is removed

@@ -7,11 +7,11 @@
 
 
 -- Put your global variables here
-local My_state = "explore"
+My_state = "explore"
 
-local found_table = {}
+Found_table = {}
 
-local messages = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+-- Used to reset the range_and_bearing data set
 
 RANDOM_FORCE_VALUE = 50
 
@@ -44,6 +44,7 @@ end
 function Rand_force(val)
     local angle = robot.random.uniform(-math.pi / 2, math.pi / 2)
     local random_force = { x = val * math.cos(angle), y = val * math.sin(angle) }
+
     return random_force
 end
 
@@ -143,7 +144,6 @@ Design = {
         robot.leds.set_all_colors("black")
     end,
 
-
     home_beacon = function()
         T = T + 1
         if (T < TMAX) then
@@ -156,8 +156,7 @@ Design = {
     end,
 }
 
-
-local State = {
+State = {
     explore = function()
         MY_design = "none"
         local rand_force = Rand_force(RANDOM_FORCE_VALUE)
@@ -177,7 +176,12 @@ local State = {
         -- change the design of its LEDs to point to the resource
         if (#robot.colored_blob_omnidirectional_camera > 0) then
             if (robot.colored_blob_omnidirectional_camera[1].color.blue == 255) then
-                My_state = "beacon"
+                My_state = "approach"
+                --[[
+                if (robot.range_and_bearing[1].data[1] == 255) then
+                    My_state = "beacon"
+                end
+                --]]
             end
         end
     end,
@@ -202,16 +206,7 @@ local State = {
         --]]
         Drive_as_car(0, 0)
         log("Found a POI")
-        robot.range_and_bearing.set_data(1, 2)
-        if robot.range_and_bearing ~= nil then
-            for i = 1, #robot.range_and_bearing do
-                log("----------------------------------------")
-                log("message: ", robot.range_and_bearing[i].data[i])
-                log("from: ", robot.id)
-                log("distance: ", robot.range_and_bearing[i].range)
-                log("direction: ", robot.range_and_bearing[i].horizontal_bearing)
-            end
-        end
+        robot.range_and_bearing.set_data(1, 255)
         MY_design = "home_beacon"
     end,
 
@@ -225,13 +220,17 @@ local State = {
         -- TODO approach only if the LED is a resource/
         -- TODO use the robot.light function  to approach the head footbot
         Speed_from_force(Camera_force(true, true))
-        log(robot.proximity[1].value)
+
+        if robot.range_and_bearing[1].data[1] == 255 then
+            My_state = "explore"
+        end
+
         if robot.proximity[1].value == 1 then
             My_state = "halt"
             robot.turret.set_passive_mode()
             robot.gripper.lock_negative()
             log("Locked & Loaded!")
-            My_state = "deliver"
+            My_state = "beacon"
         end
         if (0 == #robot.colored_blob_omnidirectional_camera) then
             My_state = "explore"
@@ -250,10 +249,10 @@ local State = {
 
 function add_to_found_table(bot_name, home, resource)
     -- Check if the bot already exists in the found table
-    local bot_entry = found_table[bot_name]
+    local bot_entry = Found_table[bot_name]
     if bot_entry == nil then
         -- If the bot doesn't exist, create a new nested table
-        found_table[bot_name] = { { home = home, resource = resource } }
+        Found_table[bot_name] = { { home = home, resource = resource } }
     else
         -- If the bot already exists, check for redundancy
         for _, entry in ipairs(bot_entry) do
@@ -274,13 +273,11 @@ function init()
     robot.colored_blob_omnidirectional_camera.enable()
     TMAX = 100
     T = math.floor(math.random(0, TMAX))
-    robot.range_and_bearing.set_data(messages)
 end
 
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-    robot.range_and_bearing.set_data(messages)
     State[My_state]()
     Design[MY_design]()
 end
@@ -296,7 +293,6 @@ function reset()
     State[My_state]()
     MY_design = "none"
     Design[MY_design]()
-    robot.range_and_bearing.set_data(messages)
 end
 
 --[[ This function is executed only once, when the robot is removed
