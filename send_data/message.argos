@@ -34,7 +34,7 @@
                     show_rays="true" />
             </sensors>
             <!-- No required configuration -->
-            <params script="./init.lua" />
+            <params script="lua/init.lua" />
             <!-- Optionally, you can pass a script as a controller parameter: -->
         </lua_controller>
     </controllers>
