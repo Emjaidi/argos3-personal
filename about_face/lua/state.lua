@@ -1,6 +1,5 @@
 -- state.lua
 --
---
 
 local motion = require("motion")
 local Design = require("design")
@@ -13,7 +12,6 @@ local function resetTimer()
     startTime = os.time()
 end
 
--- Use the functions from utils
 State = {
     explore = function() -- random walk
         MY_design = "none"
@@ -27,28 +25,73 @@ State = {
 
         motion.Speed_from_force(sum_force)
 
+        -- Check for the presence of a beacon using the omnidirectional camera
+        for _, blob in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if blob.color.red == 255 then
+                -- Red beacon (resource) detected
+                My_state = "navigate_to_resource"
+                return
+            elseif blob.color.green == 255 then
+                -- Green beacon (home) detected
+                My_state = "navigate_to_home"
+                return
+            end
+        end
+
         if (#robot.colored_blob_omnidirectional_camera > 0) then
             My_state = "inspect"
             return
         end
     end,
 
-    -- inspect state looks at the POI and determines
-    approach = function()
-        local timeout = 5              -- Timeout in seconds
+    navigate_to_resource = function()
+        -- Navigate towards the red beacon (resource)
+        local beacon = nil
+        for _, blob in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if blob.color.red == 255 then
+                beacon = blob
+                break
+            end
+        end
 
-        local proximityMinCount = 1    -- Minimum number of activated proximity sensors required
+        if beacon then
+            motion.Speed_from_force(motion.Camera_force(true, true))
+        else
+            -- Red beacon lost, transition back to explore state
+            My_state = "explore"
+        end
+    end,
+
+    navigate_to_home = function()
+        -- Navigate towards the green beacon (home)
+        local beacon = nil
+        for _, blob in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if blob.color.green == 255 then
+                beacon = blob
+                break
+            end
+        end
+
+        if beacon then
+            motion.Speed_from_force(motion.Camera_force(true, true))
+        else
+            -- Green beacon lost, transition back to explore state
+            My_state = "explore"
+        end
+    end,
+
+    approach = function()           -- inspect state looks at the POI and determines
+        local timeout = 5           -- Timeout in seconds
+
+        local proximityMinCount = 1 -- Minimum number of activated proximity sensors required
 
         -- Check if start time is zero, if so, initialize it
         if startTime == 0 then
             resetTimer()
         end
 
-        local function move_towards_POI()
-            return motion.Speed_from_force(motion.Camera_force(true, true))
-        end
+        motion.Speed_from_force(motion.Camera_force(true, true))
 
-        move_towards_POI()
 
         local foundTarget = false
 
@@ -67,15 +110,12 @@ State = {
         end
 
         if not foundTarget then
-            log("check74")
-
             -- Approach the POI
             local proximityCount = 0
 
             for i = 1, 24 do
                 if robot.proximity[i].value == 1 then
                     proximityCount = proximityCount + 1
-                    log("check81")
                 end
             end
 
@@ -107,18 +147,6 @@ State = {
             -- Combine multiple sensor inputs for target loss detection
             local targetLost = (#robot.colored_blob_omnidirectional_camera == 0)
 
-            -- Implement state-specific behavior (e.g., obstacle avoidance)
-            --[[
-            local obstacleForce = motion.Proximity_avoidance_force()
-            local combinedForce = {
-                x = motion.Camera_force(true, true).x + obstacleForce.x,
-                y = motion.Camera_force(true, true).y + obstacleForce.y
-            }
-            log("check112")
-
-            motion.Speed_from_force(combinedForce)
-
-            --]]
             -- Check if timeout has elapsed or target is lost
             if os.time() - startTime >= timeout or targetLost then
                 My_state = "explore" -- Return to explore state
@@ -128,8 +156,8 @@ State = {
             resetTimer() -- Reset timer upon finding a target
         end
     end,
-    -- if bot is to approach or keep exploring
-    inspect = function()
+
+    inspect = function()  -- if bot is to approach or keep exploring
         motion.Drive_as_car(0, 0)
         local timeout = 5 -- Timeout in seconds
         local blobDetectionCount = 0
@@ -170,9 +198,8 @@ State = {
             resetTimer()         -- Reset timer upon timeout
         end
     end,
-    --Find home state
-    -- Look for the green LED
-    find_home = function()
+
+    find_home = function() -- Find home state; Look for the green LED
         MY_design = "none"
         local rand_force = motion.Rand_force(RANDOM_FORCE_VALUE)
         local get_out_force = motion.Proximity_avoidance_force()
@@ -193,9 +220,7 @@ State = {
         end
     end,
 
-    --Find resource state
-    -- Look for the blue LED
-    find_resource = function()
+    find_resource = function() --Find resource state; Look for the blue LED
         MY_design = "none"
         local rand_force = motion.Rand_force(RANDOM_FORCE_VALUE)
         local get_out_force = motion.Proximity_avoidance_force()
@@ -219,13 +244,14 @@ State = {
     beacon = function()
         motion.Drive_as_car(0, 0)
         log("Found a POI")
-        MY_design = "home_beacon"
 
         for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
             if (255 == value.color.green) then
                 robot.range_and_bearing.set_data(1, 1)
+                MY_design = "home_beacon"
             elseif (255 == value.color.blue) then
                 robot.range_and_bearing.set_data(2, 1)
+                MY_design = "resource_beacon"
             end
         end
 

@@ -50,14 +50,7 @@ Design = {
     end,
 
     home_beacon = function()
-        T = T + 1
-        if (T < TMAX) then
-            T = T + 1
-            robot.leds.set_single_color(13, "black")
-        else
-            T = 0
-            robot.leds.set_single_color(13, "yellow")
-        end
+        robot.leds.set_all_colors("green")
     end,
 
     resource_beacon = function ()
