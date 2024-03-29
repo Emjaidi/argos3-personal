@@ -50,11 +50,11 @@ Design = {
     end,
 
     home_beacon = function()
-        robot.leds.set_all_colors("green")
+        robot.leds.set_all_colors("0,250,0, 255")
     end,
 
-    resource_beacon = function ()
-        robot.leds.set_all_colors("red")
+    resource_beacon = function()
+        robot.leds.set_all_colors("250, 0, 50, 255")
     end
 }
 

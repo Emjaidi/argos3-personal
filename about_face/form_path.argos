@@ -64,16 +64,16 @@
         <box id="home_north" size="1, .025, 0.1" movable="false">
             <body position="2.5,3.45,0" orientation="0,0,0" />
             <leds medium="leds">
-                <led offset=" 0.0, 0.0,0.2" anchor="origin" color="green" />
-            </leds>
-        </box>
-        <box id="home_east" size="0.025, 1, 0.1" movable="false">
-            <body position="2.95,3,0" orientation="0,0,0" />
-            <leds medium="leds">
-                <led offset=" 0.0, 0.0,0.2" anchor="origin" color="green" />
+                <led offset="0.0, 0.0, 0.2" anchor="origin" color="0,255,0,255" />
             </leds>
         </box>
 
+        <box id="home_east" size="0.025, 1, 0.1" movable="false">
+            <body position="2.95,3,0" orientation="0,0,0" />
+            <leds medium="leds">
+                <led offset="0.0, 0.0, 0.2" anchor="origin" color="0,255,0,255" />
+            </leds>
+        </box>
         <!--
     <light id="light0"
            position="0.7,0.3,0.25"

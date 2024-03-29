@@ -69,18 +69,36 @@ function motion.Camera_force(attraction, strong)
         val = -val
     end
 
-    -- TODO
-    -- Turn towards the source of attraction
-
     camForce.x = val * math.cos(angle)
     camForce.y = val * math.sin(angle)
     return camForce
 end
 
---[[
-function motion.About_face(angle)
+function motion.rnb_force()
+    local rnbForce = { x = 0, y = 0 }
 
-    
+    -- loop through range_and_bearing
+    for _, entry in ipairs(robot.range_and_bearing) do
+        -- locate the angle of the message where home beacon
+        -- is being transmitted
+        if entry and entry.data[1] == 1 
+            or entry and entry.data[2] == 1 then
+            -- if 
+            log("Angle is: " .. entry.horizontal_bearing)
+            log("Dist is: " .. entry.range)
+            local angle = entry.horizontal_bearing
+            local dist = entry.range
+            val = 35 * dist / 80
+            log("Val is: " .. val)
+            rnbForce.x = val * math.cos(angle)
+            log("rnbForce.x is: " .. rnbForce.x)
+            rnbForce.y = val * math.sin(angle)
+            log("rnbForce.y is: " .. rnbForce.y)
+            return rnbForce
+        else
+            return rnbForce
+        end
+    end
 end
---]]
+
 return motion

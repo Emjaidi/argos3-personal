@@ -29,11 +29,11 @@ State = {
         for _, blob in ipairs(robot.colored_blob_omnidirectional_camera) do
             if blob.color.red == 255 then
                 -- Red beacon (resource) detected
-                My_state = "navigate_to_resource"
+                My_state = "navigate_to_r_beacon"
                 return
             elseif blob.color.green == 255 then
                 -- Green beacon (home) detected
-                My_state = "navigate_to_home"
+                My_state = "navigate_to_h_beacon"
                 return
             end
         end
@@ -44,38 +44,74 @@ State = {
         end
     end,
 
-    navigate_to_resource = function()
-        -- Navigate towards the red beacon (resource)
+    navigate_to_r_beacon = function()
+        -- Navigate towards the resource beacon
         local beacon = nil
-        for _, blob in ipairs(robot.colored_blob_omnidirectional_camera) do
-            if blob.color.red == 255 then
-                beacon = blob
+        local blob = nil
+
+        -- Find the resource beacon using range and bearing data
+        for _, entry in ipairs(robot.range_and_bearing) do
+            if entry.data[1] == 1 then
+                beacon = entry
                 break
             end
         end
 
-        if beacon then
-            motion.Speed_from_force(motion.Camera_force(true, true))
+        -- Find the red blob using omnidirectional camera
+        for _, b in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if b.color.red == 255 then
+                blob = b
+                break
+            end
+        end
+
+        if beacon and blob then
+            local forceVector = motion.rnb_force()
+            motion.Speed_from_force(forceVector)
+
+            local distance = blob.distance
+            if distance <= 0.1 then
+                -- Resource reached, transition to the next state (e.g., collect resource)
+                My_state = "collect_resource"
+            end
         else
-            -- Red beacon lost, transition back to explore state
+            -- Resource beacon or blob lost, transition back to explore state
             My_state = "explore"
         end
     end,
 
-    navigate_to_home = function()
-        -- Navigate towards the green beacon (home)
+    navigate_to_h_beacon = function()
+        -- Navigate towards the home beacon
         local beacon = nil
-        for _, blob in ipairs(robot.colored_blob_omnidirectional_camera) do
-            if blob.color.green == 255 then
-                beacon = blob
+        local blob = nil
+
+        -- Find the home beacon using range and bearing data
+        for _, entry in ipairs(robot.range_and_bearing) do
+            if entry.data[2] == 1 then
+                beacon = entry
                 break
             end
         end
 
-        if beacon then
-            motion.Speed_from_force(motion.Camera_force(true, true))
+        -- Find the green blob using omnidirectional camera
+        for _, b in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if b.color.green == 255 then
+                blob = b
+                break
+            end
+        end
+
+        if beacon and blob then
+            local forceVector = motion.rnb_force()
+            motion.Speed_from_force(forceVector)
+
+            local distance = blob.distance
+            if distance <= 0.1 then
+                -- Home reached, transition to the next state (e.g., deliver resource)
+                My_state = "deliver_resource"
+            end
         else
-            -- Green beacon lost, transition back to explore state
+            -- Home beacon or blob lost, transition back to explore state
             My_state = "explore"
         end
     end,
@@ -110,6 +146,7 @@ State = {
         end
 
         if not foundTarget then
+            motion.Speed_from_force(motion.Camera_force(true, true))
             -- Approach the POI
             local proximityCount = 0
 
