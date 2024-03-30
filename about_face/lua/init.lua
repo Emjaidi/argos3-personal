@@ -9,7 +9,10 @@ local State = require("state")
 local Design = require("design")
 
 -- Put your global variables here
-My_state = "explore"
+My_state = {}
+
+found_home = false
+found_resource = false
 
 -- Used to reset the range_and_bearing data set
 
@@ -50,6 +53,7 @@ function init()
     robot.colored_blob_omnidirectional_camera.enable()
     TMAX = 100
     T = math.floor(math.random(0, TMAX))
+    My_state = "explore"
 end
 
 --[[ This function is executed at each time step
@@ -70,6 +74,8 @@ function reset()
     State[My_state]()
     MY_design = "none"
     Design[MY_design]()
+    found_home = false
+    found_resource = false
 end
 
 --[[ This function is executed only once, when the robot is removed

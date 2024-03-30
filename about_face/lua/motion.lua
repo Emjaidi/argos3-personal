@@ -81,24 +81,36 @@ function motion.rnb_force()
     for _, entry in ipairs(robot.range_and_bearing) do
         -- locate the angle of the message where home beacon
         -- is being transmitted
-        if entry and entry.data[1] == 1 
-            or entry and entry.data[2] == 1 then
+        if entry and (entry.data[1] == 1) 
+            or entry and (entry.data[2] == 1) then
             -- if 
             log("Angle is: " .. entry.horizontal_bearing)
             log("Dist is: " .. entry.range)
             local angle = entry.horizontal_bearing
             local dist = entry.range
-            val = 35 * dist / 80
+            val = 20 * dist / 80
             log("Val is: " .. val)
             rnbForce.x = val * math.cos(angle)
             log("rnbForce.x is: " .. rnbForce.x)
             rnbForce.y = val * math.sin(angle)
             log("rnbForce.y is: " .. rnbForce.y)
+
             return rnbForce
         else
+            log("can not find the rnb")
             return rnbForce
         end
     end
 end
 
+function motion.random_walk()
+        local rand_force = motion.Rand_force(RANDOM_FORCE_VALUE)
+        local get_out_force = motion.Proximity_avoidance_force()
+
+        local sum_force = { x = 0, y = 0 }
+        sum_force.x = rand_force.x + get_out_force.x
+        sum_force.y = rand_force.y + get_out_force.y
+
+        motion.Speed_from_force(sum_force)
+end
 return motion

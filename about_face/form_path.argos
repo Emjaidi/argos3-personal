@@ -33,7 +33,7 @@
                     show_rays="true" />
                 <range_and_bearing implementation="medium" medium="rab" />
                 <colored_blob_omnidirectional_camera implementation="rot_z_only" medium="leds"
-                    show_rays="false" />
+                    show_rays="true" />
             </sensors>
             <!-- No required configuration -->
             <params script="lua/init.lua" />
@@ -88,7 +88,7 @@
             <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
             <entity quantity="20" max_trials="100">
                 <foot-bot id="fb"
-                    rab_range="4">
+                    rab_range="3">
                     <controller config="lua" />
                 </foot-bot>
             </entity>
