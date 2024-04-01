@@ -141,7 +141,7 @@
             <camera>
                 <placements>
                     <placement index="0" position="0,0,4.34" look_at="0,0,0" up=".5,0,0"
-                        lens_focal_length="20" />
+                        lens_focal_length="18" />
                 </placements>
             </camera>
 

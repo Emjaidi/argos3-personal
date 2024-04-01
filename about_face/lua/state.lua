@@ -7,7 +7,7 @@ local Design = require("design")
 -- Define a global variable to track the start time
 local startTime = 0
 
-local timeout = 2         -- Timeout in seconds
+local timeout = 2 -- Timeout in seconds
 -- Define a function to reset the start time
 local function resetTimer()
     startTime = os.time()
@@ -105,7 +105,7 @@ State = {
         end
     end,
 
-    inspect = function()  -- if bot is to approach or keep exploring
+    inspect = function() -- if bot is to approach or keep exploring
         motion.Drive_as_car(0, 0)
         local blobDetectionCount = 0
         local requiredDetectionCount = 1
@@ -118,7 +118,23 @@ State = {
         -- determine if there are any messages being received
         -- that indicate that POI is already found & which one is it
         for _, entry in ipairs(robot.range_and_bearing) do
-            if (entry.data[1] == 1) -- home found and resource is found
+            if (entry.data[2] == 0) -- nothing is found
+                and (entry.data[1] == 0)
+                and (found_resource == false)
+                and (found_home == false) then
+                for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
+                    if (255 == value.color.green) or (255 == value.color.blue) then
+                        blobDetectionCount = blobDetectionCount + 1
+                    end
+                end
+
+                if blobDetectionCount >= requiredDetectionCount then
+                    -- Hysteresis: Require consecutive detections before transitioning
+                    My_state = "approach"
+                    resetTimer()
+                    return
+                end
+            elseif (entry.data[1] == 1) -- home found and resource is found
                 and found_resource == true then
                 -- connect to beacon
                 My_state = "connect_to_beacon"
@@ -140,22 +156,6 @@ State = {
                 My_state = "find_home"
                 found_resource = true
                 return
-            elseif (entry.data[2] == 0) -- nothing is found
-                and (entry.data[1] == 0)
-                and (found_resource == false)
-                and (found_home == false) then
-                for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
-                    if (255 == value.color.green) or (255 == value.color.blue) then
-                        blobDetectionCount = blobDetectionCount + 1
-                    end
-                end
-
-                if blobDetectionCount >= requiredDetectionCount then
-                    -- Hysteresis: Require consecutive detections before transitioning
-                    My_state = "approach"
-                    resetTimer()
-                    return
-                end
             end
         end
 
