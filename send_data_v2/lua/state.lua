@@ -37,8 +37,6 @@ State = {
         -- if bot is exploring then data being sent should be 0 for all necessary
         robot.range_and_bearing.set_data(zero_data)
         robot.gripper.unlock() -- release gripper
-        found_home = false
-        found_resource = false
 
         if found_home == true
             and found_resource == true then
@@ -116,7 +114,7 @@ State = {
     -- observe any messages or leds that are being detected
     inspect = function()
         motion.Drive_as_car(0, 0)
-        robot.gripper.unlock() -- release gripper if attached to anything
+        robot.gripper.unlock()                      -- release gripper if attached to anything
         robot.range_and_bearing.set_data(zero_data) -- reset information being sent out
 
         if startTime == 0 then
@@ -169,61 +167,77 @@ State = {
         end
     end,
 
-
-    find_home = function() -- Find home state; Look for the green LED
+    find_home = function()
         MY_design = "none"
+        local target_blob = {}
+        local target_rnb = {}
 
-        motion.random_walk()
-
-        for _, entry in ipairs(robot.range_and_bearing) do      -- loop through rnb
-            if (#robot.colored_blob_omnidirectional_camera > 0) -- if there is a blob detected
-                and entry
-                and (entry.data[1] == 0)
-                or (entry.data[1] == 1) then -- Check if home base is not found
-                for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
-                    if (255 == value.color.green) then
-                        blobDetectionCount = blobDetectionCount + 1
-                    end
-                end
-
-                if blobDetectionCount >= requiredDetectionCount then
-                    -- Hysteresis: Require consecutive detections before transitioning
-                    My_state = "inspect"
-                    resetTimer()
-                    return
-                end
-                return
+        -- loop through colored blob data
+        -- if the value is 255 then assign the value table to the
+        for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if (255 == value.color.green) then
+                target_blob = value
+                break
             end
         end
-    end,
 
-    find_resource = function() --Find resource state; Look for the blue LED
-        MY_design = "none"
+        for _, entry in ipairs(robot.range_and_bearing) do
+            if (entry.data[1] == 0) or (entry.data[1] == 1) then
+                target_rnb = entry
+                break
+            end
+        end
 
         motion.random_walk()
 
-        for _, entry in ipairs(robot.range_and_bearing) do
-            if (#robot.colored_blob_omnidirectional_camera > 0)
-                and entry
-                and (entry.data[2] == 0)
-                or (entry.data[2] == 1) then -- Check if home base is not found
-                for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
-                    if (255 == value.color.blue) then
-                        blobDetectionCount = blobDetectionCount + 1
-                    end
-                end
+        if next(target_rnb) and next(target_blob) and
+            (target_rnb.data[1] == 0 or target_rnb.data[1] == 1) and
+            (255 == target_blob.color.green) then
+            blobDetectionCount = blobDetectionCount + 1
+        end
 
-                if blobDetectionCount >= requiredDetectionCount then
-                    -- Hysteresis: Require consecutive detections before transitioning
-                    My_state = "inspect"
-                    resetTimer()
-                    return
-                end
-                return
-            end
+        if blobDetectionCount >= requiredDetectionCount then
+            My_state = "inspect"
+            resetTimer()
             return
         end
     end,
+
+    find_resource = function()
+        MY_design = "none"
+        local target_blob = {}
+        local target_rnb = {}
+
+        for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if (255 == value.color.blue) then
+                target_blob = value
+                log("Found blue blob: " .. robot.id)
+                break
+            end
+        end
+
+        for _, entry in ipairs(robot.range_and_bearing) do
+            if (entry.data[2] == 0) or (entry.data[2] == 1) then
+                target_rnb = entry
+                break
+            end
+        end
+
+        motion.random_walk()
+
+        if next(target_rnb) and next(target_blob) and
+            (target_rnb.data[2] == 0 or target_rnb.data[2] == 1) and
+            (255 == target_blob.color.blue) then
+            blobDetectionCount = blobDetectionCount + 1
+        end
+
+        if blobDetectionCount >= requiredDetectionCount then
+            My_state = "inspect"
+            resetTimer()
+            return
+        end
+    end,
+
 
     find_beacon = function()
         MY_design = "none"
@@ -243,56 +257,225 @@ State = {
     connect_to_beacon = function()
         local proximityMinCount = 1
         local proximityDistance = 17.5
+        local targetLost = (#robot.range_and_bearing == 0)
 
         if startTime == 0 then
             resetTimer()
         end
 
+        local target_blob = {}
+        local target_rnb = {}
+
         motion.Speed_from_force(motion.rnb_force())
 
-        if motion.rnb_force == {0,0} then
-            log("We aint movin!")
+        if motion.rnb_force() == { x = 0, y = 0 } then
+            My_state = "inspect"
+            return
+        end
+
+        for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if ((250 == value.color.green and 100 == value.color.red)
+                    or (50 == value.color.blue and 250 == value.color.red)) then
+                target_blob = value
+                break
+            end
         end
 
         for _, entry in ipairs(robot.range_and_bearing) do
-            local proximityCount = 0
-            for i = 1, 24 do
-                proximityCount = proximityCount + robot.proximity[i].value
-            end
-
-            log("Proximity Count: " .. proximityCount)
-
-            if proximityCount >= proximityMinCount then
-                local distance = entry.range
-                log("Proximity activation ongoing. Distance: " .. distance)
-
-                if distance <= proximityDistance then
-                    log("Proximity activation sustained within " .. proximityDistance .. " meters")
-                    My_state = "halt"
-                    robot.gripper.lock_positive()
-                    robot.turret.set_passive_mode()
-                    log("Locked & Loaded!")
-                    My_state = "beacon"
-                    robot.range_and_bearing.set_data(5, 1)
-                    return
-                end
-            else
-                log("Proximity activation not sustained")
+            if (entry.data[1] == 1) or (entry.data[2] == 1) then
+                target_rnb = entry
+                break
             end
         end
 
+        local proximityCount = 0
+        for i = 1, 24 do
+            proximityCount = proximityCount + robot.proximity[i].value
+        end
+
+        log("Proximity Count: " .. proximityCount)
+
+        if proximityCount >= proximityMinCount and next(target_rnb) then
+            local distance = target_rnb.range
+            log("Proximity activation ongoing. Distance: " .. distance)
+
+            if distance <= proximityDistance then
+                log("Proximity activation sustained within " .. proximityDistance .. " meters")
+                My_state = "halt"
+                robot.gripper.lock_positive()
+                robot.turret.set_passive_mode()
+                log("Locked & Loaded!")
+                My_state = "beacon"
+                robot.range_and_bearing.set_data(5, 1)
+                return
+            end
+        else
+            log(robot.id .. " Proximity activation not sustained")
+            -- motion.random_walk()
+        end
+
+        if not targetLost then
+            log(robot.id .. " lost the target")
+        end
+
+        if os.time() - startTime >= timeout and targetLost then
+            log(robot.id .. " timeout")
+            My_state = "explore"
+            resetTimer()
+        end
+    end,
+
+    --[[
+    connect_to_beacon = function()
+        local proximityMinCount = 1
+        local proximityDistance = 17.5
         local targetLost = (#robot.range_and_bearing == 0)
+
+        if startTime == 0 then
+            resetTimer()
+        end
+
+        local target_blob = {}
+
+        motion.Speed_from_force(motion.rnb_force())
+
+        if motion.rnb_force == { 0, 0 } then
+            My_state = "inspect"
+        end
+
+        -- assign the target table from the colored_blob_omnidirectional_camera
+        -- to target_blob
+        for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if ((250 == value.color.green and 100 == value.color.red)
+                    or (50 == value.color.blue and 250 == value.color.red)) then
+                target_blob = value
+            end
+        end
+
+        local target_rnb = {}
+
+
+        -- assign the target table from the range_and_bearing
+        -- to target_rnb
+        for _, entry in ipairs(robot.range_and_bearing) do
+            if (entry and 1 == entry.data[1])
+                or (entry and 1 == entry.data[2]) then
+                target_rnb = entry
+            end
+        end
+
+        local proximityCount = 0
+
+        for i = 1, 24 do
+            proximityCount = proximityCount + robot.proximity[i].value
+        end
+
+        log("Proximity Count: " .. proximityCount)
+
+        if proximityCount >= proximityMinCount
+            and (next(target_rnb) or next(target_blob)) then
+            local distance = target_rnb.range
+            log("Proximity activation ongoing. Distance: " .. distance)
+
+            if distance <= proximityDistance
+                and ((250 == target_blob.color.green and 100 == target_blob.color.red)
+                    or (50 == target_blob.color.blue and 250 == target_blob.color.red)) then
+                log("Proximity activation sustained within " .. proximityDistance .. " meters")
+                My_state = "halt"
+                robot.gripper.lock_positive()
+                robot.turret.set_passive_mode()
+                log("Locked & Loaded!")
+                My_state = "beacon"
+                robot.range_and_bearing.set_data(4, 1)
+                return
+            end
+        else
+            log(robot.id .. "Proximity activation not sustained")
+            motion.random_walk()
+            -- motion.check_movement("explore")
+        end
+
 
         if 0 == targetLost then
             log(robot.id .. " lost the target")
         end
 
-        if os.time() - startTime >= timeout then
+        if os.time() - startTime >= timeout and targetLost then
             log(robot.id .. " timeout")
-            My_state = "inspect"
+            My_state = "explore"
             resetTimer()
         end
     end,
+
+    --[[
+    connect_to_beacon = function()
+        local proximityMinCount = 1
+        local proximityDistance = 17.5
+        local targetLost = (#robot.range_and_bearing == 0)
+
+        if startTime == 0 then
+            resetTimer()
+        end
+
+        local target_blob = {}
+        local target_rnb = {}
+
+        for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
+            if ((250 == value.color.green and 100 == value.color.red)
+                    or (50 == value.color.blue and 250 == value.color.red)) then
+                target_blob = value
+                break
+            end
+        end
+
+        for _, entry in ipairs(robot.range_and_bearing) do
+            if (entry.data[1] == 1) or (entry.data[2] == 1) then
+                target_rnb = entry
+                break
+            end
+        end
+
+        motion.Speed_from_force(motion.rnb_force())
+
+        if motion.rnb_force() == { x = 0, y = 0 } then
+            My_state = "inspect"
+            return
+        end
+
+        local proximityCount = 0
+        for i = 1, 24 do
+            proximityCount = proximityCount + robot.proximity[i].value
+        end
+
+        log("Proximity Count: " .. proximityCount)
+
+        if proximityCount >= proximityMinCount then
+            if target_rnb.range and target_rnb.range <= proximityDistance and target_blob.color then
+                log("Proximity activation sustained within " .. proximityDistance .. " meters")
+                My_state = "halt"
+                robot.gripper.lock_positive()
+                robot.turret.set_passive_mode()
+                log("Locked & Loaded!")
+                My_state = "beacon"
+                robot.range_and_bearing.set_data(4, 1)
+                return
+            end
+        else
+            log(robot.id .. " Proximity activation not sustained")
+            motion.random_walk()
+        end
+
+        if not targetLost then
+            log(robot.id .. " lost the target")
+        end
+
+        if os.time() - startTime >= timeout and targetLost then
+            log(robot.id .. " timeout")
+            My_state = "explore"
+            resetTimer()
+        end
+    end,
+    --]]
 
     link = function()
         MY_design = "none"

@@ -77,30 +77,24 @@ end
 function motion.rnb_force()
     local rnbForce = { x = 0, y = 0 }
 
-    -- loop through range_and_bearing
+    -- Loop through range_and_bearing
     for _, entry in ipairs(robot.range_and_bearing) do
-        -- locate the angle of the message where home beacon
-        -- is being transmitted
-        if entry and (entry.data[1] == 1)
-            or entry and (entry.data[2] == 1) then
-            -- if 
-            log("Angle is: " .. entry.horizontal_bearing)
-            log("Dist is: " .. entry.range)
+        -- Locate the angle of the message where home beacon or resource beacon is being transmitted
+        if entry.data[1] == 1 or entry.data[2] == 1 then
             local angle = entry.horizontal_bearing
             local dist = entry.range
-            val = 20 * dist / 80
-            log("Val is: " .. val)
-            rnbForce.x = val * math.cos(angle)
-            log("rnbForce.x is: " .. rnbForce.x)
-            rnbForce.y = val * math.sin(angle)
-            log("rnbForce.y is: " .. rnbForce.y)
+            local force_magnitude = 20 * dist / 80
 
-            return rnbForce
-        else
-            log(robot.id .. "can not find the rnb")
+            rnbForce.x = force_magnitude * math.cos(angle)
+            rnbForce.y = force_magnitude * math.sin(angle)
+
             return rnbForce
         end
     end
+
+    -- No matching entry found
+    log(robot.id .. " can not find the RNB")
+    return rnbForce
 end
 
 function motion.random_walk()
@@ -113,4 +107,22 @@ function motion.random_walk()
 
         motion.Speed_from_force(sum_force)
 end
+
+-- Define the minimum distance threshold
+-- local min_distance = 0.5  -- in cm
+
+--[[
+
+function motion.check_movement(target_state)
+    -- Get the total distance moved by the wheels in the last timestep
+    local distance_moved = robot.wheels.distance_left + robot.wheels.distance_right
+    
+    -- Check if the distance moved is less than the minimum threshold
+    if distance_moved < min_distance then
+        -- Switch to the target state
+        My_state = target_state
+        log("Robot has not moved enough. Switching to state: " .. target_state)
+    end
+end
+--]]
 return motion
