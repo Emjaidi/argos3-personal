@@ -114,12 +114,14 @@ State = {
 
                     --log(robot.id .. " " .. distance)
                     if poi_min_distance >= distance then
-                        motion.Drive_as_car(0, 0)
+                        motion.Drive_as_car(1, 0)
+
+                        -- robot locking sequence
+                        robot.turret.set_position_control_mode()
+                        robot.turret.set_rotation(target_blob.angle)
                         robot.gripper.lock_positive()
-                        -- robot.turret.set_position_control_mode()
-                        -- robot.turret.set_rotation(target_blob.horizontal_bearing)
                         robot.turret.set_passive_mode()
-                        log(robot.id .. "Locked & Loaded!")
+                        -- log(robot.id .. "Locked & Loaded!")
                         My_state = "beacon"
                     end
                 else
@@ -390,7 +392,8 @@ State = {
         -- motion.Drive_as_car(-9, .5)
         robot.range_and_bearing.set_data(zero_data)
         robot.range_and_bearing.set_data(5, 2)
-        log(robot.id .. " I am a link")
+        -- log(robot.id .. " I am a link")
+        motion.Drive_as_car(-2, .005)
     end,
 
     beacon = function()

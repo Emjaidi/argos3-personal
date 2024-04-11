@@ -61,10 +61,17 @@
         </box>
 
         <!-- the home base barrier-->
-        <box id="home_north" size=".1, .1, 0.1" movable="false">
-            <body position="2.5,3.45,0" orientation="0,0,0" />
+        <box id="home_north" size=".1, .1, 0.1" movable="true" mass="1000000000000">
+            <body position="2.5,3.0,0" orientation="45,0,0" />
             <leds medium="leds">
                 <led offset="0.0, 0.0, 0.2" anchor="origin" color="0,255,0,255" />
+            </leds>
+        </box>
+
+        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="500000">
+            <body position="-2.3,2.3,0" orientation="45,0,0" />
+            <leds medium="leds">
+                <led offset=" 0.0, 0.0,0.2" anchor="origin" color="blue" />
             </leds>
         </box>
 
@@ -88,12 +95,6 @@
             </entity>
         </distribute>
 
-        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="500000">
-            <body position="-2.3,2.3,0" orientation="45,0,0" />
-            <leds medium="leds">
-                <led offset=" 0.0, 0.0,0.2" anchor="origin" color="blue" />
-            </leds>
-        </box>
         <!--distribute>
     <position method="uniform" min="-2.5,-2.5,0" max="2.5,2.5,0" />
         <orientation method="uniform" min="0,0,0" max="360,0,0" />
