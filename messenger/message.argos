@@ -70,14 +70,14 @@
             </entity>
         </distribute>
 
-        <box id="home" size="0.1,0.1,0.1" movable="true" mass="5000000000000">
+        <box id="home" size="0.1,0.1,0.1" movable="false" mass="5000000000000">
             <body position="1.2,1.5,0" orientation="45,0,0" />
             <leds medium="leds">
                 <led offset=" 0.0, 0.0,0.2" anchor="origin" color="0,255,0,255" />
             </leds>
         </box>
 
-        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="50000">
+        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="50000000">
             <body position="-1, -1,0" orientation="45,0,0" />
             <leds medium="leds">
                 <led offset=" 0.0, 0.0,0.2" anchor="origin" color="0,0,255,255" />

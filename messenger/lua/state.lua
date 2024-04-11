@@ -116,6 +116,8 @@ State = {
                     if poi_min_distance >= distance then
                         motion.Drive_as_car(0, 0)
                         robot.gripper.lock_positive()
+                        -- robot.turret.set_position_control_mode()
+                        -- robot.turret.set_rotation(target_blob.horizontal_bearing)
                         robot.turret.set_passive_mode()
                         log(robot.id .. "Locked & Loaded!")
                         My_state = "beacon"
@@ -355,9 +357,12 @@ State = {
             if distance <= proximityDistance then
                 log("Proximity activation sustained within " .. proximityDistance .. " meters")
                 motion.Drive_as_car(0, 0)
-                robot.gripper.lock_positive()
+                --
+                -- sequence to lock on to the POI
                 robot.turret.set_position_control_mode()
-                --robot.turret.set_passive_mode()
+                robot.turret.set_rotation(target_rnb.horizontal_bearing)
+                robot.gripper.lock_positive()
+                robot.turret.set_passive_mode()
                 log("Locked & Loaded!")
                 My_state = "beacon"
                 robot.range_and_bearing.set_data(5, 1)
