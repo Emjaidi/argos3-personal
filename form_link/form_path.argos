@@ -61,19 +61,13 @@
         </box>
 
         <!-- the home base barrier-->
-        <box id="home_north" size="1, .025, 0.1" movable="false">
+        <box id="home_north" size=".1, .1, 0.1" movable="false">
             <body position="2.5,3.45,0" orientation="0,0,0" />
             <leds medium="leds">
                 <led offset="0.0, 0.0, 0.2" anchor="origin" color="0,255,0,255" />
             </leds>
         </box>
 
-        <box id="home_east" size="0.025, 1, 0.1" movable="false">
-            <body position="2.95,3,0" orientation="0,0,0" />
-            <leds medium="leds">
-                <led offset="0.0, 0.0, 0.2" anchor="origin" color="0,255,0,255" />
-            </leds>
-        </box>
         <!--
     <light id="light0"
            position="0.7,0.3,0.25"
@@ -94,7 +88,7 @@
             </entity>
         </distribute>
 
-        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="2.5">
+        <box id="resource1" size="0.1,0.1,0.1" movable="true" mass="500">
             <body position="-2.3,2.3,0" orientation="45,0,0" />
             <leds medium="leds">
                 <led offset=" 0.0, 0.0,0.2" anchor="origin" color="blue" />
