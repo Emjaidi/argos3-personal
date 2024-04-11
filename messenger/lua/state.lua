@@ -162,7 +162,7 @@ State = {
                 resource_found = true
                 found_resource = true
             end
-            if entry.data[7] == 1 then
+            if entry.data[5] == 1 then
                 amount_of_links = amount_of_links + 1
             end
             --  log(robot.id .. " amount of links: " .. amount_of_links)
