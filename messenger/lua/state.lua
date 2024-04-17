@@ -3,6 +3,7 @@
 
 local motion = require("motion")
 local Design = require("design")
+local util = require("utilities")
 
 -- Define a global variable to track the start time
 local zero_data = {}
@@ -20,6 +21,9 @@ local function resetTimer()
 end
 
 local requiredDetectionCount = 1
+
+local r_beacon_count = 0
+local min_r_beacon = 4
 
 State = {
     explore = function() -- random walk
@@ -62,7 +66,7 @@ State = {
 
         -- get within a certain distance of the home/resource beacon
         -- then move to the other beacon
-        motion.Speed_from_force(motion.rnb_force())
+        motion.Speed_from_force(motion.range_force())
 
         -- oscillate between the the POI_beacon
         --[[
@@ -96,20 +100,11 @@ State = {
         -- Approach the POI
         robot.range_and_bearing.set_data(6, 1) -- send data that it is approaching
 
-        -- local proximityCount = 0
-
-        -- tallies the value of the proximity value of the sensors
-        --[[
-            for i = 1, 24 do
-                proximityCount = proximityCount + robot.proximity[i].value
-            end
-
-            --]]
         --
         for _, proximity_sensor in ipairs(robot.proximity) do
             if 1 == proximity_sensor.value then
                 --motion.Drive_as_car(0, 0)
-                if #robot.colored_blob_omnidirectional_camera > 0 and next(target_blob) then
+                if #robot.colored_blob_omnidirectional_camera > 0 and nil ~= next(target_blob) then
                     local distance = target_blob.distance
 
                     --log(robot.id .. " " .. distance)
@@ -126,6 +121,8 @@ State = {
                     end
                 else
                     log("No colored blob detected")
+                    My_state = "inspect"
+                    break
                 end
             end
         end
@@ -143,7 +140,7 @@ State = {
         motion.Drive_as_car(0, 0)
         robot.gripper.unlock()                      -- release gripper if attached to anything
         robot.range_and_bearing.set_data(zero_data) -- reset information being sent out
-        local targetLocked = false
+        local target_claimed = false
         local amount_of_links = 0
         local blobDetectionCount = 0
 
@@ -163,22 +160,23 @@ State = {
             if entry.data[2] == 1 then
                 resource_found = true
                 found_resource = true
+                r_beacon_count = r_beacon_count + 1
             end
             if entry.data[5] == 1 then
                 amount_of_links = amount_of_links + 1
             end
             --  log(robot.id .. " amount of links: " .. amount_of_links)
             if entry and entry.data[6] == 1 then
-                targetLocked = true
+                target_claimed = true
                 break
             end
         end
 
-        if not targetLocked then
+        if not target_claimed then
             if home_found and resource_found
                 and amount_of_links == 4 then
                 My_state = "messenger"
-                robot.range_and_bearing.set_data(zero_data)
+                -- robot.range_and_bearing.set_data(zero_data)
                 return
             elseif home_found and not found_resource then
                 My_state = "find_resource"
@@ -243,7 +241,7 @@ State = {
 
         motion.random_walk()
 
-        if next(target_rnb) and next(target_blob) and
+        if nil ~= next(target_rnb) and nil ~= next(target_blob) and
             (target_rnb.data[1] == 0 or target_rnb.data[1] == 1) and
             (255 == target_blob.color.green) then
             blobDetectionCount = blobDetectionCount + 1
@@ -279,7 +277,7 @@ State = {
 
         motion.random_walk()
 
-        if next(target_rnb) and next(target_blob) and
+        if nil ~= next(target_rnb) and nil ~= next(target_blob) and
             (target_rnb.data[2] == 0 or target_rnb.data[2] == 1) and
             (255 == target_blob.color.blue) then
             blobDetectionCount = blobDetectionCount + 1
@@ -320,15 +318,7 @@ State = {
         end
 
         local target_blob = {}
-        local target_rnb = {}
-
-        motion.Speed_from_force(motion.rnb_force())
-
-        if motion.rnb_force() == { x = 0, y = 0 } then
-            My_state = "inspect"
-            resetTimer()
-            return
-        end
+        local target_rnb = nil
 
         for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
             if ((250 == value.color.green and 100 == value.color.red)
@@ -338,12 +328,16 @@ State = {
             end
         end
 
-        for _, entry in ipairs(robot.range_and_bearing) do
-            if (entry.data[1] == 1) or (entry.data[2] == 1) then
-                target_rnb = entry
-                break
-            end
+        target_rnb = util.get_beacon_rnb("n")
+
+        if motion.range_force(target_rnb) == { x = 0, y = 0 } then
+            My_state = "inspect"
+            resetTimer()
+            return
         end
+
+        motion.Speed_from_force(motion.range_force(target_rnb))
+
 
         local proximityCount = 0
         for i = 1, 24 do
@@ -352,28 +346,40 @@ State = {
 
         log("Proximity Count: " .. proximityCount)
 
-        if proximityCount >= proximityMinCount and next(target_rnb) then
-            local distance = target_rnb.range
-            log("Proximity activation ongoing. Distance: " .. distance)
+        for _, entry in ipairs(robot.proximity) do
+            if target_rnb == nil then
+                log(robot.id .. " Proximity activation not sustained")
+                My_state = "inspect"
+            else
+                if entry.value == 1 then
+                    local distance = target_rnb.range
+                    log("Proximity activation ongoing. Distance: " .. distance)
 
-            if distance <= proximityDistance then
-                log("Proximity activation sustained within " .. proximityDistance .. " meters")
-                motion.Drive_as_car(0, 0)
-                --
-                -- sequence to lock on to the POI
-                robot.turret.set_position_control_mode()
-                robot.turret.set_rotation(target_rnb.horizontal_bearing)
-                robot.gripper.lock_positive()
-                robot.turret.set_passive_mode()
-                log("Locked & Loaded!")
-                My_state = "beacon"
-                robot.range_and_bearing.set_data(5, 1)
-                resetTimer()
-                return
+                    if os.time() - startTime >= timeout and targetLost then
+                        log(robot.id .. " timeout")
+                        My_state = "explore"
+                        resetTimer()
+                    end
+
+                    if distance <= proximityDistance then
+                        log("Proximity activation sustained within " .. proximityDistance .. " meters")
+                        motion.Drive_as_car(5, 0)
+
+                        --
+                        -- sequence to lock on to the POI
+                        robot.turret.set_position_control_mode()
+                        robot.turret.set_rotation(entry.angle)
+                        motion.Drive_as_car(10, 0)
+                        robot.gripper.lock_positive()
+                        robot.turret.set_passive_mode()
+                        log("Locked & Loaded!")
+                        robot.range_and_bearing.set_data(5, 1)
+                        My_state = "beacon"
+                        resetTimer()
+                        return
+                    end
+                end
             end
-        else
-            log(robot.id .. " Proximity activation not sustained")
-            -- motion.random_walk()
         end
 
         if not targetLost then
@@ -388,12 +394,14 @@ State = {
     end,
 
     link = function()
+        robot.gripper.lock_positive()
+        robot.turret.set_passive_mode()
         MY_design = "none"
         -- motion.Drive_as_car(-9, .5)
         robot.range_and_bearing.set_data(zero_data)
         robot.range_and_bearing.set_data(5, 2)
         -- log(robot.id .. " I am a link")
-        motion.Drive_as_car(-2, .005)
+        motion.Drive_as_car(-5, .005)
     end,
 
     beacon = function()
@@ -413,6 +421,7 @@ State = {
             elseif (255 == value.color.blue) or (50 == value.color.blue and 250 == value.color.red) then
                 robot.range_and_bearing.set_data(2, 1)
                 is_resource_beacon = true
+                r_beacon_count = r_beacon_count + 1
                 found_resource = true
                 MY_design = "resource_beacon"
             end
@@ -424,34 +433,53 @@ State = {
                 My_state = "link"
                 return
             end
-            if entry and 2 == entry.data[5] then
-                motion.Drive_as_car(-4, .5)
+            if entry and 2 == entry.data[5]
+                and MY_design == "resource_beacon" then
+                State.probe(MY_design)
             end
         end
 
         -- Failsafe to handle multiple beacons of the same design
         if not is_home_beacon and not is_resource_beacon then
             for _, entry in ipairs(robot.range_and_bearing) do
-                if entry.data[1] == 1 and entry.range < 20 then
+                local min_dis = 26
+                local distance = entry.range
+                if entry.data[1] == 1 and distance < min_dis then
                     log(robot.id .. " returning to explore (home beacon conflict)")
                     My_state = "explore"
                     return
-                elseif entry.data[2] == 1 and entry.range < 20 then
+                end
+                if entry.data[2] == 1 and distance < min_dis then
                     log(robot.id .. " returning to explore (resource beacon conflict)")
                     My_state = "explore"
                     return
                 end
             end
         end
-
-
-        --
-        -- Maintain the robot's position as a beacon
-        -- Add code here to keep the robot in place or move slightly to maintain its role as a beacon
-        -- motion.straighten()
-        -- My_state = "link"
-        -- motion.Drive_as_car(-4, .5)
     end,
+
+    probe = function(design)
+        local home_beacon
+
+        log(robot.id .. " probing")
+
+        robot.gripper.lock_positive()
+        robot.turret.set_passive_mode()
+        MY_design = design
+
+        for _, entry in ipairs(robot.range_and_bearing) do
+            if entry and entry.data[5] == 1 then
+                My_state = "link"
+                return
+            end
+        end
+
+        robot.range_and_bearing.set_data(2, 1)
+        home_beacon = util.get_beacon_rnb("p")
+
+        motion.Speed_from_force(motion.range_force(home_beacon))
+    end,
+
 
     halt = function()
         motion.Drive_as_car(0, 0)

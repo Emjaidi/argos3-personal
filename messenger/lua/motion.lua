@@ -22,6 +22,37 @@ function motion.oscillate(amplitude, period)
     motion.Drive_as_car(velocity, 2)
 end
 
+function motion.range_force(target)
+    local rnbForce = { x = 0, y = 0 }
+
+    -- Locate the angle of the message where home beacon or resource beacon is being transmitted
+    if nil ~= target and nil ~= target.range and nil ~= target.horizontal_bearing then
+        local angle = target.horizontal_bearing
+        local dist = target.range
+        local force_magnitude = 20 * dist / 80
+
+        rnbForce.x = force_magnitude * math.cos(angle)
+        rnbForce.y = force_magnitude * math.sin(angle)
+        else
+            return rnbForce
+    end
+    return rnbForce
+end
+
+function motion.rnb_force(target)
+    local rnbForce = { x = 0, y = 0 }
+
+    -- Locate the angle of the message where home beacon or resource beacon is being transmitted
+    local angle = target.horizontal_bearing
+    local dist = target.range
+    local force_magnitude = 20 * dist / 80
+
+    rnbForce.x = force_magnitude * math.cos(angle)
+    rnbForce.y = force_magnitude * math.sin(angle)
+
+    return rnbForce
+end
+
 function motion.Speed_from_force(f)
     local forward_speed = f.x * 1.0
     local angular_speed = f.y * 0.3
@@ -86,28 +117,21 @@ function motion.Camera_force(attraction, strong)
     return camForce
 end
 
-function motion.rnb_force()
+--[[
+function motion.rnb_force(target)
     local rnbForce = { x = 0, y = 0 }
 
-    -- Loop through range_and_bearing
-    for _, entry in ipairs(robot.range_and_bearing) do
-        -- Locate the angle of the message where home beacon or resource beacon is being transmitted
-        if entry.data[1] == 1 or entry.data[2] == 1 then
-            local angle = entry.horizontal_bearing
-            local dist = entry.range
-            local force_magnitude = 20 * dist / 80
+    -- Locate the angle of the message where home beacon or resource beacon is being transmitted
+    local angle = target.horizontal_bearing
+    local dist = target.range
+    local force_magnitude = 20 * dist / 80
 
-            rnbForce.x = force_magnitude * math.cos(angle)
-            rnbForce.y = force_magnitude * math.sin(angle)
+    rnbForce.x = force_magnitude * math.cos(angle)
+    rnbForce.y = force_magnitude * math.sin(angle)
 
-            return rnbForce
-        end
-    end
-
-    -- No matching entry found
-    log(robot.id .. " can not find the RNB")
     return rnbForce
 end
+------------]]
 
 function motion.random_walk()
     local rand_force = motion.Rand_force(RANDOM_FORCE_VALUE)
@@ -120,21 +144,4 @@ function motion.random_walk()
     motion.Speed_from_force(sum_force)
 end
 
--- Define the minimum distance threshold
--- local min_distance = 0.5  -- in cm
-
---[[
-
-function motion.check_movement(target_state)
-    -- Get the total distance moved by the wheels in the last timestep
-    local distance_moved = robot.wheels.distance_left + robot.wheels.distance_right
-
-    -- Check if the distance moved is less than the minimum threshold
-    if distance_moved < min_distance then
-        -- Switch to the target state
-        My_state = target_state
-        log("Robot has not moved enough. Switching to state: " .. target_state)
-    end
-end
---]]
 return motion

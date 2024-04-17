@@ -8,6 +8,8 @@ local State = require("state")
 
 local Design = require("design")
 
+local motion = require("motion")
+
 -- Put your global variables here
 My_state = {}
 
