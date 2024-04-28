@@ -88,7 +88,6 @@ State = {
             resetTimer()
         end
 
-
         for _, value in ipairs(robot.colored_blob_omnidirectional_camera) do
             if (255 == value.color.green) or (255 == value.color.blue) then
                 target_blob = value
@@ -100,7 +99,6 @@ State = {
         -- Approach the POI
         robot.range_and_bearing.set_data(6, 1) -- send data that it is approaching
 
-        --
         for _, proximity_sensor in ipairs(robot.proximity) do
             if 1 == proximity_sensor.value then
                 --motion.Drive_as_car(0, 0)
@@ -116,7 +114,6 @@ State = {
                         robot.turret.set_rotation(target_blob.angle)
                         robot.gripper.lock_positive()
                         robot.turret.set_passive_mode()
-                        -- log(robot.id .. "Locked & Loaded!")
                         My_state = "beacon"
                     end
                 else
@@ -153,11 +150,11 @@ State = {
         -- loop through the range_and_bearing table to determine if there are
         -- messages that need to be followed
         for _, entry in ipairs(robot.range_and_bearing) do
-            if entry.data[1] == 1 then
+            if entry.data[1] == 1 then -- home beacon being transmitted by another robot
                 home_found = true
                 found_home = true
             end
-            if entry.data[2] == 1 then
+            if entry.data[2] == 1 then -- home beacon being transmitted by another robot
                 resource_found = true
                 found_resource = true
                 r_beacon_count = r_beacon_count + 1
@@ -206,7 +203,7 @@ State = {
             end
         else
             log("Target already locked by another robot")
-            My_state = "halt"
+            My_state = "inspect"
             resetTimer()
         end
 
@@ -331,7 +328,7 @@ State = {
         target_rnb = util.get_beacon_rnb("n")
 
         if motion.range_force(target_rnb) == { x = 0, y = 0 } then
-            My_state = "inspect"
+            My_state = "explore"
             resetTimer()
             return
         end
@@ -349,7 +346,7 @@ State = {
         for _, entry in ipairs(robot.proximity) do
             if target_rnb == nil then
                 log(robot.id .. " Proximity activation not sustained")
-                My_state = "inspect"
+                My_state = "explore"
             else
                 if entry.value == 1 then
                     local distance = target_rnb.range
@@ -364,8 +361,6 @@ State = {
                     if distance <= proximityDistance then
                         log("Proximity activation sustained within " .. proximityDistance .. " meters")
                         motion.Drive_as_car(5, 0)
-
-                        --
                         -- sequence to lock on to the POI
                         robot.turret.set_position_control_mode()
                         robot.turret.set_rotation(entry.angle)
@@ -374,7 +369,7 @@ State = {
                         robot.turret.set_passive_mode()
                         log("Locked & Loaded!")
                         robot.range_and_bearing.set_data(5, 1)
-                        My_state = "beacon"
+                        My_state = util.determine_beacon()
                         resetTimer()
                         return
                     end
@@ -401,7 +396,36 @@ State = {
         robot.range_and_bearing.set_data(zero_data)
         robot.range_and_bearing.set_data(5, 2)
         -- log(robot.id .. " I am a link")
-        motion.Drive_as_car(-5, .005)
+        -- motion.Drive_as_car(-5, .005)
+    end,
+
+    h_beacon = function()
+        motion.Drive_as_car(0, 0)
+        robot.range_and_bearing.set_data(zero_data)
+        found_home = true
+        MY_design = "home_beacon"
+--        util.check_multi_beacon()
+    end,
+
+    r_beacon = function()
+        motion.Drive_as_car(0, 0)
+        robot.range_and_bearing.set_data(zero_data)
+        r_beacon_count = r_beacon_count + 1
+        found_resource = true
+        MY_design = "resource_beacon"
+        -- Check if the robot should become a link
+        for _, entry in ipairs(robot.range_and_bearing) do
+            --[[
+            if entry and entry.data[5] == 1 then
+                My_state = "link"
+                return
+            end
+            --]]
+            if entry and 2 == entry.data[5] then
+                State.probe(MY_design)
+            end
+        end
+        -- util.check_multi_beacon()
     end,
 
     beacon = function()
@@ -433,10 +457,12 @@ State = {
                 My_state = "link"
                 return
             end
+            --[[
             if entry and 2 == entry.data[5]
                 and MY_design == "resource_beacon" then
                 State.probe(MY_design)
             end
+            --]]
         end
 
         -- Failsafe to handle multiple beacons of the same design
@@ -467,12 +493,14 @@ State = {
         robot.turret.set_passive_mode()
         MY_design = design
 
+        --[[
         for _, entry in ipairs(robot.range_and_bearing) do
             if entry and entry.data[5] == 1 then
                 My_state = "link"
                 return
             end
         end
+        --]]
 
         robot.range_and_bearing.set_data(2, 1)
         home_beacon = util.get_beacon_rnb("p")
@@ -483,23 +511,10 @@ State = {
 
     halt = function()
         motion.Drive_as_car(0, 0)
-        --[[
-        local halt_timeout = 4
-        -- reset approaching message
-        robot.range_and_bearing.set_data(zero_data)
-        -- Check if start time is zero, if so, initialize it
-        if startTime == 0 then
-            resetTimer()
-        end
-        if os.time() - startTime >= halt_timeout then
-            My_state = "inspect" -- Return to explore state
-            resetTimer()         -- Reset timer upon timeout or losing target
-        end
-        --]]
 
         for _, rnb in ipairs(robot.range_and_bearing) do
-            if 1 == rnb.data[1] or 1 == rnb.data[2] then
-                My_state = "inspect" -- Return to explore state
+            if 1 == rnb.data[1] or 1 == rnb.data[2] or 1 == rnb.data[6] then
+                My_state = "explore" -- Return to explore state
             end
         end
     end,
